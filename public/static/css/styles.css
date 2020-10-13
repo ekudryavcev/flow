@@ -1,0 +1,425 @@
+@font-face {
+	font-family: 'Corbel';
+	src: url('Corbel.eot');
+	src: local('Corbel'),
+		url('Corbel.eot?#iefix') format('embedded-opentype'),
+		url('Corbel.woff') format('woff'),
+		url('Corbel.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Corbel';
+	src: url('Corbel-Bold.eot');
+	src: local('Corbel Bold'), local('Corbel-Bold'),
+		url('Corbel-Bold.eot?#iefix') format('embedded-opentype'),
+		url('Corbel-Bold.woff') format('woff'),
+		url('Corbel-Bold.ttf') format('truetype');
+	font-weight: bold;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Corbel';
+	src: url('Corbel-Italic.eot');
+	src: local('Corbel Italic'), local('Corbel-Italic'),
+		url('Corbel-Italic.eot?#iefix') format('embedded-opentype'),
+		url('Corbel-Italic.woff') format('woff'),
+		url('Corbel-Italic.ttf') format('truetype');
+	font-weight: normal;
+	font-style: italic;
+}
+
+@font-face {
+	font-family: 'Corbel';
+	src: url('Corbel-BoldItalic.eot');
+	src: local('Corbel Bold Italic'), local('Corbel-BoldItalic'),
+		url('Corbel-BoldItalic.eot?#iefix') format('embedded-opentype'),
+		url('Corbel-BoldItalic.woff') format('woff'),
+		url('Corbel-BoldItalic.ttf') format('truetype');
+	font-weight: bold;
+	font-style: italic;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 0.15rem;
+}
+
+/* Track */
+.theme-light ::-webkit-scrollbar-track {
+    background: #ffffff80;
+}
+.theme-dark ::-webkit-scrollbar-track {
+    background: #cad1e280;
+}
+
+/* Handle */
+.theme-light ::-webkit-scrollbar-thumb {
+    background: #ffffff;
+}
+.theme-dark ::-webkit-scrollbar-thumb {
+    background: #cad1e2;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    width: 0.25rem;
+}
+
+
+.vertically-scrollable {
+    margin-right: 0.15rem !important;
+}
+
+
+body {
+    margin: 0rem;
+    max-width: 100%;
+    overflow-x: hidden;
+    font-family: Corbel, Calibri;
+    background-image: url("../imgs/background.jpg");
+    background-size: cover;
+    font-size: 16px;
+    zoom: 0.8;
+    -ms-zoom: 0.8;
+    /*overflow: hidden;*/
+}
+
+body.theme-dark {
+    background-image: none;
+    background-color: #12161f;
+    background-image: url("../imgs/background_dark.jpg");
+    background-position: -30%;
+}
+
+
+.theme-dark {
+    background-color: #252c3b;
+    color: #cad1e2;
+    border-color: #cad1e2;
+}
+.theme-light {
+    background-color: white;
+    color: black;
+    border-color: black;
+}
+
+.theme-dark .header,
+.theme-dark .card-column {
+    background-color: #12161f60;
+    color: #cad1e2;
+    border: 0.125rem solid #cad1e2;
+}
+
+.theme-light .header,
+.theme-light .card-column {
+    background-color: #ffffff40;
+    color: white;
+    border: 0.125rem solid white;
+}
+
+
+h3 {
+    font: normal normal bold 1.25rem/1.5rem Corbel;
+    letter-spacing: 0rem;
+}
+
+
+svg {
+    stroke-width: 0.3rem;
+}
+
+#board {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+#board>div {
+    margin-top: 3.75em;
+    margin-bottom: 3.75em;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+
+.card-column {
+    padding-left: 0.0rem;
+    padding-right: 0.0rem;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 2px solid;
+    /*padding-right: 0.125rem;*/
+}
+
+.card-column>.header {
+    position: relative;
+    height: 2.5em;
+    outline: 2px solid;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: none;
+}
+
+.column-header-name {
+    position: absolute;
+    top: 0rem;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.column-header-options {
+    position: absolute;
+    top: 0rem;
+    right: 0rem;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+}
+
+.column-header-name>h3 {
+    margin-left: 0.5rem;
+    align-self: center;
+    margin-bottom: 0.1rem;
+}
+
+.column-header-name>svg,
+.column-header-options>svg {
+    margin-left: 0.5rem;
+    align-self: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    object-fit: contain;
+}
+
+.column-header-options>svg {
+    margin-right: 1.0rem;
+    margin-left: 0.0rem;
+    stroke-width: 0.4rem;
+}
+
+
+.card-column>.card-list {
+    padding: 0rem;
+    margin: 0rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.15rem;
+    max-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.card {
+    margin: 0.15rem;
+    margin-top: 0.0rem;
+    margin-bottom: 0.1875rem;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0rem;
+    font: normal normal normal 1rem/1.2rem Corbel;
+}
+
+.card>p {
+    margin-bottom: 0.25rem;
+}
+
+.card>div {
+    margin-top: 1.0rem;
+    margin-bottom: 0.375rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    position: relative;
+}
+
+.card>div>svg {
+    margin-left: 0.25rem;
+    margin-right: 0.5rem;
+    align-self: left;
+    width: 1.0rem;
+    height: 1.0rem;
+    object-fit: contain;
+    stroke-width: 0.4rem;
+    opacity: 50%;
+}
+
+.card>div>span {
+    font: normal normal normal 0.75rem/1.0rem Calibri;
+    letter-spacing: 0rem;
+    opacity: 50%;
+    margin-left: 0.25rem;
+    margin-right: 0.5rem;
+}
+
+.card>div>.tag-hidden,
+.card>div>.tag-hidden.tag-large {
+    height: 0.25rem;
+    width: 3.0rem;
+    margin: 0.25rem;
+}
+
+.card>div>.tag-hidden.tag-small {
+    width: 0.5rem;  
+}
+
+.card>img {
+    height: 2.5rem;
+    width: 2.5rem;
+    object-fit: contain;
+    border-radius: 1.25rem;
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.625rem;
+}
+
+.theme-light.card img {
+    border: 0.125rem solid white;
+}
+
+.theme-dark.card img {
+    border: 0.125rem solid #293040;
+}
+
+.add-card-button {
+    margin-left: 0.15rem;
+    margin-right: 0.15rem;
+    border: 0.125rem solid;
+    height: 2.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.theme-dark .add-card-button {
+    background-color: #12161f60;
+}
+
+.theme-light .add-card-button {
+    background-color: #ffffff40;
+}
+
+.add-card-button>svg {
+    align-self: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    object-fit: contain;
+    stroke-width: 0.4rem;
+}
+
+
+.displayed-card-container {
+    position: absolute;
+    left: 0rem;
+    top: 0rem;
+    height: 100%;
+    width: 100%;
+    -webkit-backdrop-filter: blur(50px);
+    backdrop-filter: blur(50px);
+    display: flex;
+    justify-content: center;
+}
+
+.theme-dark .displayed-card-container {
+    background-color: #12161f20;
+}
+
+.theme-light .displayed-card-container {
+    background-color: #ffffff20;
+}
+
+.displayed-card {
+    position: relative;
+    align-self: center;
+    height: 70%;
+    width: 60%;
+    padding: 2.5rem;
+    font-size: 1.25rem;
+}
+
+.displayed-card-header {
+    margin-bottom: 1.875rem;
+}
+
+.displayed-card-header>h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0rem;
+    margin: 0rem;
+}
+
+.displayed-card-header>div {
+    opacity: 50%;
+    padding: 0rem;
+    margin: 0rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.displayed-card-header>div>.displayed-card-column {
+    margin-left: 0.375rem;
+    margin-right: 0.25rem;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.displayed-card-header>div>svg {
+    align-self: center;
+    width: 0.75rem;
+    height: auto;
+    object-fit: contain;
+    stroke-width: 0.4rem;
+}
+
+.displayed-card-section {
+    margin-top: 1.25rem;
+}
+
+.displayed-card-section-name {
+    opacity: 50%;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.displayed-card-section-name>svg {
+    align-self: center;
+    width: 1.0rem;
+    height: auto;
+    margin-right: 0.625rem;
+    object-fit: contain;
+    stroke-width: 0.4rem;
+}
+
+.displayed-card-footer {
+    position: absolute;
+    left: 1.875rem;
+    bottom: 1.875rem;
+}
+
+.displayed-card-created {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
+.displayed-card-created>img {
+    align-self: center;
+    height: 2.5rem;
+    width: 2.5rem;
+    object-fit: contain;
+    border-radius: 1.25rem;
+}
+
+.displayed-card-creator {
+    align-self: center;
+    margin-left: 1.0rem;
+}
+
+.displayed-card-creator>span {
+    opacity: 50%;
+}
