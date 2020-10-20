@@ -138,6 +138,12 @@ ul {
 }
 
 
+.number {
+    font-family: Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: 300;
+}
+
+
 .tag-color-0 {background-color: #2CA876; color: white; }
 .tag-color-1 {background-color: #FB9E24; color: white; }
 .tag-color-2 {background-color: #AB0069; color: white; }
@@ -348,10 +354,13 @@ ul {
 .displayed-card {
     position: relative;
     align-self: center;
-    height: 70%;
     width: 60%;
     padding: 2.5rem;
     font-size: 1.25rem;
+}
+
+.displayed-card-details {
+    margin-bottom: 6.0rem;
 }
 
 .displayed-card-header {
@@ -421,19 +430,21 @@ ul {
     margin-top: 1.0rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
-    height: 2.0rem;
+    height: 1.rem;
 }
 
 #add-tag {
     padding: 0rem;
-    height: 2.0rem;
-    width: 2.0rem;
+    height: 2.125rem;
+    width: 2.125rem;
     align-self: center;
+    opacity: 50%;
+    stroke-width: 0.0625rem;
 }
 
 #add-tag>svg {
-    height: 2.0rem;
-    width: 2.0rem;
+    height: 2.125rem;
+    width: 2.125rem;
     object-fit: contain;
 }
 
@@ -445,14 +456,15 @@ ul {
     margin-top: 0.625rem;
 }
 
-.displayed-assignee {
+.displayed-card-assignees>ul>li {
     display: flex;
     flex-direction: row;
     justify-content: left;
     margin-right: 1.25rem;
 }
 
-.displayed-assignee>img {
+.displayed-card-assignees>ul>li>img,
+#add-assignee>svg {
     align-self: center;
     height: 2.5rem;
     width: 2.5rem;
@@ -460,9 +472,33 @@ ul {
     border-radius: 1.25rem;
 }
 
-.displayed-assignee>span {
+.displayed-card-assignees>ul>li>span {
     align-self: center;
     margin-left: 1.0rem;
+}
+
+#add-assignee {
+    opacity: 50%;
+}
+
+.displayed-card-options {
+    position: absolute;
+    right: 5rem;
+    bottom: 8rem;
+}
+
+.displayed-card-options>div {
+    margin-top: 1.0rem;
+    height: 1.5rem;
+}
+
+.displayed-card-options>div>svg {
+    align-self: center;
+    height: 1.25rem;
+    width: 1.25rem;
+    object-fit: contain;
+    margin-right: 0.625rem;
+    padding-bottom: 0.0625rem;
 }
 
 .displayed-card-footer {
@@ -490,6 +526,10 @@ ul {
     margin-left: 1.0rem;
 }
 
-.displayed-card-creator>span {
+.displayed-card-creator>span:first-child {
+    opacity: 50%;
+}
+
+.displayed-card-id {
     opacity: 50%;
 }
