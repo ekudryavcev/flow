@@ -132,6 +132,20 @@ svg {
     stroke-width: 0.3rem;
 }
 
+
+ul {
+    list-style-type: none;
+}
+
+
+.tag-color-0 {background-color: #2CA876; color: white; }
+.tag-color-1 {background-color: #FB9E24; color: white; }
+.tag-color-2 {background-color: #AB0069; color: white; }
+.tag-color-3 {background-color: #D63A13; color: white; }
+.tag-color-4 {background-color: #0092B9; color: white; }
+.tag-color-5 {background-color: #7073DA; color: white; }
+
+
 #board {
     margin-left: 0.5rem;
     margin-right: 0.5rem;
@@ -393,6 +407,62 @@ svg {
     margin-right: 0.625rem;
     object-fit: contain;
     stroke-width: 0.4rem;
+}
+
+.displayed-card-tag-list {
+    display: flex;
+    flex-direction: row;
+    padding: 0rem;
+    justify-content: left;
+}
+
+.displayed-card-tag-list>span {
+    margin-right: 1.0rem;
+    margin-top: 1.0rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    height: 2.0rem;
+}
+
+#add-tag {
+    padding: 0rem;
+    height: 2.0rem;
+    width: 2.0rem;
+    align-self: center;
+}
+
+#add-tag>svg {
+    height: 2.0rem;
+    width: 2.0rem;
+    object-fit: contain;
+}
+
+.displayed-card-assignees>ul {
+    padding: 0rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    margin-top: 0.625rem;
+}
+
+.displayed-assignee {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    margin-right: 1.25rem;
+}
+
+.displayed-assignee>img {
+    align-self: center;
+    height: 2.5rem;
+    width: 2.5rem;
+    object-fit: contain;
+    border-radius: 1.25rem;
+}
+
+.displayed-assignee>span {
+    align-self: center;
+    margin-left: 1.0rem;
 }
 
 .displayed-card-footer {
