@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {v4 as uuid} from 'uuid';
 import './index.css';
 
 
-window.id_list = [];
-window.users = {};
-window.columns = {};
-window.id_current = 1;
-window.theme = "dark";
+var board = {};
+var users = {};
+var id_current;
+var id_available;
+//var columns = {};
+var theme = "dark";
 
 const ICON_DESCRIPTION = <svg viewBox="0 0 64 64" strokeWidth="6" stroke="currentColor" fill="none"><line x1="0" y1="8" x2="64" y2="8"/><line x1="0" y1="32" x2="64" y2="32"/><line x1="0" y1="56" x2="48" y2="56"/></svg>;
 const ICON_PLUS = <svg viewBox="0 0 64 64" strokeWidth="6" stroke="currentColor" fill="none"><line x1="32" y1="7" x2="32" y2="57"/><line x1="7" y1="32" x2="57" y2="32"/></svg>;
@@ -38,8 +40,99 @@ const ICON_ARCHIVE = <svg viewBox="0 0 18.5 14.264"><g transform="translate(0.25
 const ICON_SUBSCRIBE = <svg viewBox="0 0 16.17 19.5"><g transform="translate(0.75 0.75)"><path d="M12,26.816V24.96A1.9,1.9,0,0,0,13.852,23.1V17.237a4.875,4.875,0,0,1,5.237-4.867c4.647,0,5.747,2.707,5.747,4.691v6.374s-.136,1.54,1.834,1.54v1.834Z" transform="translate(-12 -10.569)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75"/><path d="M30.958,9.4V8.894a1.434,1.434,0,1,0-2.868,0v.462" transform="translate(-22.189 -7.46)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75"/><path d="M29.946,51.76a1.753,1.753,0,1,1-3.506,0" transform="translate(-21.144 -35.513)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75"/></g></svg>;
 
 
+class BinaryHeap{
+
+  constructor() {
+    this.heap = [];
+    this.size = this.heap.length;
+  }
+
+  push(value) {
+    this.heap.push(value);
+    this.bubbleUp();
+    this.size = this.heap.length;
+  }
+
+  isEmpty() {
+    return(this.heap.length === 0);
+  }
+
+  pop() {
+    let min = this.heap[0];
+    if(this.heap.length === 1) {
+      this.heap = [];
+    }
+    else {
+      this.heap[0] = this.heap.pop();
+      this.sinkDown(0);
+    }
+    this.size = this.heap.length;
+    return min;
+  }
+
+  bubbleUp() {
+    let index =  this.heap.length-1;
+    while(index > 0) {
+      let element = this.heap[index];
+      let parentIndex = Math.floor((index-1)/2);
+      let parent = this.heap[parentIndex];
+      if(parent <= element)
+        break;
+      this.heap[index] = parent;
+      this.heap[parentIndex] = element;
+      index = parentIndex;
+    }
+  }
+
+  sinkDown(index) {
+    let left = 2*index+1;
+    let right = 2*index+2;
+    let largest = index;
+    const length = this.heap.length;
+
+    // if left child is smaller than parent
+    if(left <= length && this.heap[left] < this.heap[largest] ) {
+      largest = left;
+    }
+    // if right child is smaller than parent
+    if(right <= length && this.heap[right] < this.heap[largest]) {
+      largest = right;
+    }
+    // swap
+    if(largest !== index){
+      [this.heap[largest], this.heap[index]] = [this.heap[index], this.heap[largest]];
+      this.sinkDown(largest);
+    }
+
+ }
+  
+}
+
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
+}
+
+const getUUID = uuid;
+
+function getCardID() {
+  let id;
+  if(id_available.isEmpty()) {
+    id = id_current;
+    id_current++;
+    return(id);
+  }
+  else {
+    return(id_available.pop());
+  }
+}
+
+function deleteCardID(id) {
+  if(id === id_current - 1) {
+    id_current = id;
+  }
+  else {
+    id_available.push(id);
+  }
 }
 
 
@@ -50,8 +143,9 @@ class User {
     this.name = name;
     this.mail = mail;
     this.avatar = avatar;
-    window.users[id] = this;
+    users[id] = this;
   }
+
 }
 
 
@@ -62,59 +156,61 @@ class Card extends React.Component {
     this.name = props.name;
     this.column = props.column;
     this.id = props.id;
-    this.state = { // Tag React components
-      tags: props.tags,
+    this.state = {
       name: props.name,
+      tags: props.tags,
       column: props.column,
       assignees: props.assignees,
+      task_list: props.task_list,
       description: props.description
     };
-    console.log("    Creating card " + this.name);
-    //this.id = window.id_current;
-    //window.id_current++;
-    window.board.cards[this.id] = this;
   }
 
   setDescription(description) {
-    this.setState({"description" : description});
+    this.setState({name: this.state.name, tags: this.state.tags, column: this.state.column, assignees: this.state.assignees, task_list: this.state.task_list, description: description});
   }
 
   addTag(tag) {
-    this.state.tags.push(tag);
+    this.setState({name: this.state.name, tags: this.state.tags + [tag], column: this.state.column, assignees: this.state.assignees, task_list: this.state.task_list, description: this.state.description});
   }
 
   addAssignee(assignee) {
-    this.state.assignees.push(assignee);
+    this.setState({name: this.state.name, tags: this.state.tags, column: this.state.column, assignees: this.state.assignees + [assignee], task_list: this.state.task_list, description: this.state.description});
   }
 
   render() {
 
-    console.log("    Rendering card " + this.state.name);
-    let large_tag_count = this.renderTags();
+    let large_tag_count = 0;//this.renderTags();
     
     let rendered_tags = [];
     let class_name;
     for(let i = 0; i < this.state.tags.length; ++i) {
       if(i < large_tag_count)
-        class_name = "tag-hidden tag-large tag-color-";
+        class_name = "tag-hidden tag-large";
       else
-        class_name = "tag-hidden tag-small tag-color-";
-      class_name += window.board.tags[this.state.tags[i]].color;
+        class_name = "tag-hidden tag-small";
+      try {
+        class_name += " tag-color-" + board.state.tags[this.state.tags[i]].color;
+      }
+      catch {
+        console.log(this.state.tags[i]);
+        class_name += " tag-color-" + this.state.tags[i];
+      }
       rendered_tags.push(<div className={class_name}></div>);
     }
 
     return(
 
-    <div className="card">
+    <div className="card" onClick={() => {board.displayCard(this.state.column, this.id);}}>
       <p>{this.state.name}</p>
       <div>
-          {this.description === "" ? null : ICON_DESCRIPTION}
-          <span>#{window.board.project_id}-{this.props.id}</span>
+          {(this.state.description === "" || this.state.description === undefined) ? null : ICON_DESCRIPTION}
+          <span>#{board.state.project_id}-{this.props.id}</span>
           {rendered_tags}
       </div>
-      {this.state.assignees.length >= 3 ? <img src={window.users[this.state.assignees[2]].avatar} style={{right:'2.75rem'}}/> : null}
-      {this.state.assignees.length >= 2 ? <img src={window.users[this.state.assignees[1]].avatar} style={{right:'1.75rem'}}/> : null}
-      {this.state.assignees.length >= 1 ? <img src={window.users[this.state.assignees[0]].avatar}/> : null}
+      {this.state.assignees.length >= 3 ? <img src={users[this.state.assignees[2]].avatar} style={{right:'2.75rem'}}/> : null}
+      {this.state.assignees.length >= 2 ? <img src={users[this.state.assignees[1]].avatar} style={{right:'1.75rem'}}/> : null}
+      {this.state.assignees.length >= 1 ? <img src={users[this.state.assignees[0]].avatar}/> : null}
     </div>
 
     );
@@ -126,12 +222,12 @@ class Card extends React.Component {
       let column_width = ReactDOM.findDOMNode(this).clientWidth;
       column_width -= ReactDOM.findDOMNode(this).getElementsByTagName("span")[0].clientWidth; // ID width and margins
       column_width /= 16;
-      column_width -= 3.5; // Card margins and padding
+      column_width -= 2.5; // Card margins and padding
       if (this.state.description !== "")
-        column_width -= 1.75; // Description icon
-      column_width -= 1.75; // Right margin
+        column_width -= 1.5; // Description icon
+      column_width -= 1.25; // Right margin
       if (this.state.assignees.length >= 1)
-        column_width -= 2.75; // Assignee avatar
+        column_width -= 2.5; // Assignee avatar
       if (this.state.assignees.length >= 2)
         column_width -= 1.0625; // 2nd assignee avatar
       if (this.state.assignees.length >= 3)
@@ -148,7 +244,6 @@ class Card extends React.Component {
     catch(e) {
       large_tag_count = 0;
     }
-    console.log(large_tag_count);
     return(large_tag_count);
   }
 
@@ -185,16 +280,15 @@ class Column extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.id;
-    this.name = props.name;
-    this.locked = props.locked;
-    this.cards = props.cards;
-    window.board.columns[this.id] = this;
-    console.log("  Creating column " + this.name);
+    this.state = {
+      name: props.name,
+      cards: props.cards,
+      locked: props.locked,
+      description: props.description
+    }
   }
 
   render() {
-
-    console.log("  Rendering column " + this.name);
 
     return(
 
@@ -202,19 +296,21 @@ class Column extends React.Component {
       <div className="card-column">
         <div className="header">
           <div className="column-header-name">
-            {this.locked ? null : ICON_UNLOCKED}
-            <h3>{this.name}</h3>
+            {this.state.locked ? null : ICON_UNLOCKED}
+            <h3>{this.state.name}</h3>
           </div>
           <div className="column-header-options">
-            {ICON_PLUS}
+            <button onClick={() => { board.addCard(this.id, { id: getCardID(), name: "", description: "", column: this.id, tags: [], assignees: []}, true); }}>
+              {ICON_PLUS}
+            </button>
             {ICON_OPTIONS}
           </div>
         </div>
         <div className="card-list">
           {this.props.children}
-          <div className="add-card-button">
+          <button className="add-card-button" onClick={() => { board.addCard(this.id, { id: getCardID(), name: "", description: "", column: this.id, tags: [], assignees: []}); }}>
             {ICON_PLUS}
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -247,24 +343,127 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.id;
-    this.project_id = props.project_id;
-    this.name = props.name;
-    this.cards = props.cards;
-    this.columns = props.columns;
-    this.tags = props.tags;
-    window.board = this;
+    this.state = {
+      project_id: props.project_id,
+      name: props.name,
+      cards: props.cards,
+      columns: props.columns,
+      tags: props.tags,
+      users: props.users,
+      id_current: props.id_current,
+      id_available: props.id_available,
+      displayed_card: props.displayed_card
+    };
+    board = this;
+  }
+
+  getCardID() {
+    let id;
+    if(this.state.id_available.isEmpty()) {
+      id = this.state.id_current;
+      this.state.id_current++;
+      return(id);
+    }
+    else {
+      return(this.state.id_available.pop());
+    }
+  }
+  
+  deleteCardID(id) {
+    if(id === this.state.id_current - 1) {
+      this.state.id_current = id;
+    }
+    else {
+      this.state.id_available.push(id);
+    }
+  }
+
+  addCard(column_id, card, first=false) {
+    let cards = this.state.cards;
+    //if(first)
+    //  cards[column_id] = [card].concat(cards[column_id]);
+    //else
+    //  cards[column_id].push(card);
+    cards[column_id][card.id] = card;
+    this.setState({      
+      project_id: this.state.project_id,
+      name: this.state.name,
+      cards: cards,
+      columns: this.state.columns,
+      tags: this.state.tags,
+      users: this.state.users,
+      id_current: this.state.id_current,
+      displayed_card: this.state.displayed_card,
+      id_available: this.state.id_available
+    });
+  }
+
+  // If a card is pressed, to open it full-screen we save its ID into board.displayed_card
+  displayCard(column, card=-1) {
+    let displayed_card = {column: column, id: card}; // For finding the card, knowing its, column is handy
+    // If a displayed card is closed, we clear the ID from board.displayed_card by putting -1 instead
+    if(column === -1)
+      displayed_card = -1;
+    this.setState({      
+      project_id: this.state.project_id,
+      name: this.state.name,
+      cards: this.state.cards,
+      columns: this.state.columns,
+      tags: this.state.tags,
+      users: this.state.users,
+      id_current: this.state.id_current,
+      displayed_card: displayed_card,
+      id_available: this.state.id_available
+    });
   }
 
   render() {
+    
+    let cards = [];
+    let columns = [];
+    // For each column of cards in the board's list of cards
+    for(let i = 0; i < this.state.cards.length; ++i) {
+      const column_data = this.state.cards[i];
+      let column = []; // A list of card components for a column
+      // For each card ID in the dictionary of cards of one column
+      Object.keys(column_data).forEach(card_id => {
+        const card = column_data[card_id];
+        console.log(card_id);
+        console.log(card);
+        column.push( // Add the card's component into the list for a column
+          <Card key={card.id.toString()} id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} assignees={card.assignees}/>
+        );
+      });
+      // Add the filled column to the main list of components
+      cards.push(column);
+    }
+    // Now generate the column components, complete with their cards as children
+    for(let i = 0; i < this.state.columns.length; ++i) {
+      const column = this.state.columns[i];
+      columns.push(
+        <Column key={column.id.toString()} id={column.id} name={column.name} description={column.description} locked={column.locked}>
+          {cards[i]}
+        </Column>
+      );
+    }
 
-    console.log("Rendering Board")
+    // If a card is open full-screen right now, make a component for it
+    let displayed_card = null;
+    if(this.state.displayed_card !== -1) {
+      let card = this.state.cards[this.state.displayed_card.column][this.state.displayed_card.id];
+      displayed_card = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} assignees={card.assignees}/>;
+    }
+
     return(
 
-    <div className="row" id="board">
-      <noscript>You need to enable JavaScript to run this app.</noscript>
-      <div className="col-lg-1"></div>
-      {this.props.children}
-      <div className="col-lg-1"></div>
+    <div>
+      <div className="row" id="board">
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div className="col-lg-1"></div>
+        {columns}
+        <div className="col-lg-1"></div>
+      </div>
+      {displayed_card}
     </div>
 
     );
@@ -280,10 +479,10 @@ class DisplayedCard extends Card {
     let tags = []
     this.state.tags.forEach(tag => {
       try {
-        tags.push(<span className={`tag-color-${window.board.tags[tag].color}`}>{window.board.tags[tag].name}</span>);
+        tags.push(<span className={`tag-color-${board.state.tags[tag].color}`}>{board.state.tags[tag].name}</span>);
       }
       catch(e) {
-        console.log(window.board.tags[tag]);
+        console.log(board.state.tags[tag]);
       }
     });
     tags.push(<button id="add-tag">{ICON_ADD_TAG}</button>);
@@ -293,8 +492,8 @@ class DisplayedCard extends Card {
       assignees.push(
         <li className="displayed-assignee">
           <button>
-            <img src={window.users[assignee].avatar}/>
-            <span>{window.users[assignee].name}</span>
+            <img src={users[assignee].avatar}/>
+            <span>{users[assignee].name}</span>
           </button>
         </li>
         );
@@ -308,6 +507,15 @@ class DisplayedCard extends Card {
         </li>
     );
 
+    let description = this.state.description;
+    if(this.state.description !== "")
+      description = <p>{description}</p>;
+    else {
+      description = <button id="add-description">
+                      {ICON_PLUS}<span>Add</span>
+                    </button>;
+    }
+
     return(
 
       <div className="displayed-card-background">
@@ -316,21 +524,21 @@ class DisplayedCard extends Card {
             <div className="displayed-card-header">
               <h2>{this.state.name}</h2>
               <div>
-                <span>in </span><span className="displayed-card-column">{window.board.columns[this.state.column].name}</span>{ICON_DROPDOWN_ARROW}
+                <span>in </span><span className="displayed-card-column">{board.state.columns[this.state.column].name}</span>{ICON_DROPDOWN_ARROW}
               </div>
             </div>
             <div className="displayed-card-section displayed-card-description">
               <div className="displayed-card-section-name">
                 {ICON_DESCRIPTION}<span>Description</span>
               </div>
-              <p>{this.state.description}</p>
+              {description}
             </div>
             <div className="displayed-card-details">
               <div className="displayed-card-section displayed-card-task-list">
                 <div className="displayed-card-section-name">
                   {ICON_CHECK}<span>Task list</span>
                 </div>
-                <button id="add-task-list">
+                <button id="add-task">
                   {ICON_PLUS}<span>Add</span>
                 </button>
               </div>
@@ -346,7 +554,7 @@ class DisplayedCard extends Card {
                 </div>
                 <ul>{assignees}</ul>
               </div>
-              <div className="displayed-card-section displayed-card-files">
+              <div className="displayed-card-section displayed-card-files" style={{display: "none"}}>
                 <div className="displayed-card-section-name">
                   {ICON_ATTACH}<span>Files</span>
                 </div>
@@ -373,7 +581,7 @@ class DisplayedCard extends Card {
               <button id="save-template-card-button">
                 {ICON_SAVE_TEMPLATE}<span>Save template</span>
               </button>
-              <div class="divider"/>
+              <div className="divider"/>
               <button id="subscribe-card-button">
                 {ICON_SUBSCRIBE}<span>Subscribe</span>
               </button>
@@ -386,7 +594,7 @@ class DisplayedCard extends Card {
               <button id="forward-card-button">
                 {ICON_FORWARD}<span>Forward</span>
               </button>
-              <div class="divider"/>
+              <div className="divider"/>
               <button id="archive-card-button">
                 {ICON_ARCHIVE}<span>Archive</span>
               </button>
@@ -396,19 +604,19 @@ class DisplayedCard extends Card {
             </div>
             <div className="displayed-card-footer">
               <div className="displayed-card-created">
-                <img src={window.users[this.props.creator].avatar} style={{right:'2.75rem'}}/>
+                <img src={users[this.props.creator].avatar} style={{right:'2.75rem'}}/>
                 <span className="displayed-card-creator">
-                  {window.users[this.props.creator].name} <span>created this card on</span><span className="number"> {this.props.creation_date}</span>
+                  {users[this.props.creator].name} <span>created this card on</span><span className="number"> {this.props.creation_date}</span>
                 </span>
               </div>
               <div className="displayed-card-id number">
-                #{window.board.project_id}-{this.props.id}
+                #{board.state.project_id}-{this.props.id}
               </div>
             </div>
           </div>
           <div className="displayed-card-right-buttons">
             <div className="displayed-card-right-top-buttons">
-              <button>{ICON_CROSS}</button>
+              <button onClick={() => {board.displayCard(-1);}}>{ICON_CROSS}</button>
               <button>{ICON_INFO}</button>
               <button>{ICON_SHARE}</button>
             </div>
@@ -430,27 +638,37 @@ class DisplayedCard extends Card {
 
 Card.defaultProps = {
   tags: [],
-  assignees: [1, 2],
-  description: '',
+  name: '',
   creator: 1,
+  assignees: [1, 2],
+  task_list: [],
+  description: '',
   creation_date: "11.10.2020"
 };
 
 Column.defaultProps = {
   locked: true,
+  description: '',
   cards: {}
 };
 
 Board.defaultProps = {
-  cards: {},
-  columns: {},
-  tags: {}
+  cards: [],
+  columns: [],
+  users: {},
+  tags: {},
+  displayed_card: -1,
+  id_current: 1,
+  id_available: new BinaryHeap()
 };
 
-let user = new User(1, "John Galt", "whoisjgalt@mail.com", "../static/imgs/avatar_ba@2x.png");
-user = new User(2, "Amy House", "amywhoexactly@mail.com", "../static/imgs/avatar_cj@2x.png");
-user = new User(3, "Michael", "mychael@mail.com", "../static/imgs/avatar_cx@2x.png");
-user = new User(4, "Alice Boering", "nonotboring@mail.com", "../static/imgs/avatar_bz@2x.png");
+new User(1, "John Galt", "whoisjgalt@mail.com", "../static/imgs/avatar_ba@2x.png");
+new User(2, "Amy House", "amywhoexactly@mail.com", "../static/imgs/avatar_cj@2x.png");
+new User(3, "Michael", "mychael@mail.com", "../static/imgs/avatar_cx@2x.png");
+new User(4, "Alice Boering", "nonotboring@mail.com", "../static/imgs/avatar_bz@2x.png");
+
+id_available = new BinaryHeap();
+id_current = 1;
 
 let tags = {
   0 : {"name" : "performance", "color" : 0},
@@ -459,27 +677,96 @@ let tags = {
   3 : {"name" : "critical",    "color" : 3},
   4 : {"name" : "python",      "color" : 4},
   5 : {"name" : "installer",   "color" : 5},
-  6 : {"name" : "xs queries",  "color" : 6}
+  6 : {"name" : "xs queries",  "color" : 6},
+  7 : {"name" : "lrm",         "color" : 7},
+  8 : {"name" : "ipsm",        "color" : 8}
+}
+board.state = {tags: tags};
+
+let columns_data = [
+  {
+    id: 0,
+    name: "Reported",
+    locked: false
+  },
+  {
+    id: 1,
+    name: "Confirmed",
+    locked: true
+  },
+  {
+    id: 2,
+    name: "In development",
+    locked: true
+  },
+  {
+    id: 3,
+    name: "Testing",
+    locked: true
+  },
+  {
+    id: 4,
+    name: "Finished",
+    locked: true
+  }
+];
+
+let id = getCardID();
+let cards_data = [{}, {}, {}, {}, {}];
+cards_data[0][id] = {
+  id: id,
+  name: "Call a function from its name/id in order to allow arrays of functions.",
+  description: "Add an option to call functions from its name/id for more flexibility, specifically to make lists of functions. Alternatively make some kind of function object.",
+  column: 0,
+  tags: [0, 1, 6],
+  assignees: [1, 3]
+};
+let texts = ["Vivamus vel risus sed metus ultricies sollicitudin sed in lectus.", "Donec vitae augue vel ligula iaculis pharetra eu eu nunc.", "Curabitur accumsan sem eget tortor mollis, consequat aliquet justo faucibus.", "Cras nec diam euismod, fermentum lectus ut, suscipit tortor.", "Maecenas a metus vitae urna dictum eleifend.", "Curabitur elementum leo ut mattis tristique.", "Morbi auctor tellus et dapibus pretium.", "Vestibulum sagittis lacus sed feugiat commodo.", "Cras pharetra libero at metus feugiat placerat.", "Nullam vitae tellus semper sem dignissim pharetra.", "Mauris ac velit at nibh tempor volutpat vitae et nunc.", "Ut vitae mauris non nulla vehicula pretium.", "Nullam ut dolor sollicitudin sapien dignissim ultricies.", "Sed scelerisque tellus ut pulvinar iaculis.", "Vivamus commodo risus vel ipsum pulvinar, quis dictum tortor elementum.", "Quisque ac quam placerat, ultricies ipsum non, posuere dui.", "Cras ut quam nec enim finibus pretium.", "Morbi pulvinar eros et tortor pharetra molestie.", "Curabitur rutrum libero ac enim pellentesque blandit.", "Quisque varius nisl eget lectus feugiat rhoncus.", "Fusce dapibus nulla nec odio ornare porttitor.", "Phasellus eget nibh at libero mattis condimentum ut quis mauris.", "Donec cursus dui et massa dapibus consectetur.", "Morbi vel lorem porta, venenatis sem vehicula, tempor metus.", "Integer quis mi vel nisi posuere imperdiet.", "Curabitur rutrum odio id urna molestie, nec commodo metus blandit.", "Phasellus gravida massa quis sem posuere, id luctus ipsum venenatis.", "Morbi sed arcu imperdiet, feugiat velit ac, cursus mi.", "Donec id magna sit amet urna tempor sodales.", "Nullam tempor mi a ex sagittis volutpat.", "Integer nec diam ultrices orci vestibulum ullamcorper id in erat.", "Donec molestie lacus a scelerisque fringilla.", "Maecenas eu est aliquam justo aliquet tempor.", "Quisque dictum metus tempor, commodo quam in, molestie risus.", "Phasellus condimentum eros vitae eros ultricies tristique.", "Donec sed purus sit amet mauris eleifend consequat.", "Phasellus tempor libero sed ornare consequat.", "Phasellus ultricies augue ut enim sodales, sed dapibus lorem tempus.", "Curabitur eu nibh congue, tincidunt odio in, dictum elit.", "Donec tempus velit a pretium sagittis.", "Nullam ut mauris vehicula, facilisis sapien eu, finibus lectus.", "Vestibulum quis tellus eu orci posuere eleifend sit amet non lectus.", "Donec egestas augue in orci condimentum porta.", "Donec et lacus ac sapien accumsan rhoncus.", "Sed dictum nisi a tempus hendrerit.", "Donec porttitor ante quis lacus pretium congue.", "Nulla nec risus vel velit lobortis dapibus.", "Pellentesque quis felis vitae eros molestie rutrum.", "Etiam molestie dolor placerat, semper dolor non, volutpat erat.", "Sed ac nisl ullamcorper quam maximus blandit.", "Nullam sed nisl malesuada, lacinia lacus sed, porttitor eros.", "Aliquam porttitor lacus vel ornare pellentesque.", "Curabitur vitae nunc ullamcorper, ultricies dolor at, rutrum odio.", "Morbi a lacus a nibh gravida hendrerit.", "Curabitur dapibus ligula molestie ante tristique, in tincidunt purus porttitor.", "Fusce sed mi vel nunc mollis scelerisque quis ac massa.", "Suspendisse rhoncus sem non fringilla finibus.", "Praesent sagittis odio eget fringilla ornare.", "Morbi hendrerit nisl varius, egestas nulla eu, gravida urna.", "Vestibulum eget odio ac enim rutrum sollicitudin in eget turpis.", "Aliquam facilisis neque venenatis dui pulvinar feugiat.", "Proin iaculis metus non urna hendrerit vestibulum.", "Donec eu nisi vel risus aliquam maximus.", "Morbi convallis lorem id nibh tincidunt, vitae ultrices tortor malesuada.", "Vestibulum sollicitudin nunc vel tincidunt consectetur.", "Pellentesque vestibulum augue non cursus mattis.", "Nunc vestibulum arcu aliquet, eleifend nisi ac, condimentum nisl.", "Phasellus pulvinar tortor hendrerit pellentesque faucibus.", "Integer feugiat erat id libero dictum tincidunt.", "Nulla pharetra turpis a mollis cursus.", "Duis et justo efficitur, malesuada turpis eu, tempus nulla.", "Aliquam lobortis risus eu velit sagittis maximus.", "Vestibulum nec est pharetra, rhoncus turpis eget, pretium tellus.", "Morbi iaculis mi a ligula pharetra, nec venenatis augue porttitor.", "Duis et sem eu dolor suscipit sollicitudin eget at massa.", "Donec tempus urna nec mauris tristique, in sollicitudin lacus egestas.", "Praesent fermentum odio et nisl auctor laoreet.", "Cras mattis diam venenatis, elementum risus non, porta nisl.", "Fusce molestie turpis eget ultricies dictum.", "Aliquam efficitur libero vel luctus elementum.", "Quisque non arcu nec justo vestibulum laoreet a sed nunc.", "Sed laoreet mi in nisl cursus fringilla.", "Duis finibus lectus non condimentum pretium.", "Nunc a arcu hendrerit, vestibulum leo quis, condimentum nisi.", "Phasellus vitae risus auctor, maximus purus in, blandit ligula.", "Curabitur pretium est vel mauris pharetra maximus.", "Morbi nec lectus nec felis vestibulum hendrerit at id orci.", "Quisque id orci sit amet est convallis egestas.", "Praesent laoreet odio tincidunt urna condimentum tincidunt.", "Fusce tristique erat vitae tortor malesuada, ac aliquam turpis euismod.", "Ut vel quam auctor, convallis leo non, finibus est.", "Praesent vitae justo at diam iaculis venenatis.", "Donec fermentum tortor id mauris fringilla, faucibus tristique metus placerat.", "Proin sit amet tortor vitae purus bibendum mattis eu eget est.", "Sed mollis leo sit amet ex vestibulum, nec faucibus felis mattis.", "Vivamus lobortis odio at ipsum scelerisque, ac tristique sem molestie.", "Donec ornare magna vel lacus lacinia, nec mattis nisi elementum.", "Pellentesque faucibus mauris sed justo ultrices, at convallis odio efficitur.", "Sed id erat non nulla ullamcorper aliquet.", "Integer nec sem eu velit ullamcorper sollicitudin sed quis nunc.", "Vivamus et metus iaculis, fringilla nunc vel, dapibus turpis.", "Donec euismod nibh eu nisi efficitur, eget tempus elit eleifend.", "Mauris pharetra diam at orci euismod, vel elementum felis molestie.", "Donec viverra tortor quis arcu lacinia, et sodales erat viverra.", "Phasellus efficitur sem nec ullamcorper semper.", "Maecenas vel urna quis risus facilisis tincidunt.", "Proin eu mi ut ante tristique lacinia et ac elit.", "Mauris euismod magna ut efficitur maximus.", "Maecenas consectetur elit vitae nulla dignissim, eget posuere sem convallis.", "Curabitur tincidunt est vitae velit egestas, ac placerat dui consequat.", "Pellentesque consequat arcu dignissim arcu interdum gravida at vitae eros.", "Maecenas quis orci consectetur, tincidunt dui ac, euismod libero.", "Sed consectetur magna sed turpis pharetra, ac cursus tortor egestas.", "Nam in mauris nec arcu vulputate ornare.", "Morbi a leo eleifend, bibendum ipsum vitae, faucibus eros.", "Vivamus eget justo sit amet urna dictum euismod.", "Mauris sagittis orci et rhoncus dictum.", "Cras a ex eleifend, sollicitudin libero quis, pretium dolor.", "Nullam tristique orci id varius vestibulum.", "Donec non quam eu eros lobortis aliquam.", "Ut ultrices lacus vel imperdiet semper.", "Quisque a diam id turpis faucibus interdum.", "Morbi luctus lectus sed scelerisque volutpat.", "Nunc a lectus sed dolor molestie blandit.", "Vestibulum dignissim arcu quis tempor dapibus.", "In convallis quam ac lorem elementum, vitae molestie nibh mattis.", "Fusce laoreet tortor eu augue interdum laoreet.", "Pellentesque non mi id sem tempus mattis eu eu purus.", "Vestibulum ornare erat sed vehicula lacinia.", "In pulvinar ligula rutrum, sollicitudin lorem ultrices, varius dui.", "Curabitur sit amet sem a elit sodales dignissim.", "Vivamus bibendum leo ac vehicula pharetra.", "Cras a arcu id nisl sagittis varius.", "Maecenas faucibus tortor nec lacinia laoreet.", "Donec sit amet nulla vel enim malesuada aliquam.", "Phasellus in nibh tincidunt, gravida erat eget, sollicitudin purus.", "Suspendisse eu est sed leo iaculis accumsan.", "Nam mollis urna vitae tempus porttitor.", "Donec eu mauris at lacus dictum dictum sit amet quis lectus.", "Cras a orci sit amet massa gravida pharetra eu tempus arcu.", "Curabitur quis nisl ac leo pharetra pulvinar et id enim.", "Suspendisse tempus purus nec vestibulum feugiat.", "Sed ullamcorper tortor placerat tellus ullamcorper ultrices.", "Quisque eget massa efficitur, ullamcorper augue sed, cursus mi.", "Suspendisse nec quam in tellus rutrum tincidunt at sit amet urna.", "Vivamus faucibus augue sit amet cursus efficitur.", "Maecenas auctor eros vel molestie malesuada.", "Maecenas at mauris consequat, molestie nulla sed, tempor elit.", "Etiam ut quam id lorem finibus ullamcorper.", "In pretium nisi eget tellus varius elementum.", "Morbi tempus leo vel pretium hendrerit.", "Donec vitae nibh a leo facilisis aliquam id in risus.", "Vestibulum interdum ipsum sed rutrum facilisis.", "Duis lacinia mi in cursus sagittis.", "Vivamus vitae urna ullamcorper, gravida eros et, suscipit arcu.", "Fusce efficitur elit eget erat auctor vehicula.", "Fusce blandit ipsum in arcu lacinia, venenatis volutpat dolor porttitor.", "Sed aliquam eros sit amet dolor laoreet tempus.", "Proin sagittis quam non leo convallis, vitae aliquet massa commodo.", "Praesent vulputate risus eget metus accumsan efficitur.", "Cras luctus dolor non tincidunt congue.", "Nam vulputate est et tortor finibus, ut imperdiet arcu viverra.", "Integer in erat malesuada, dapibus ante sed, convallis nibh.", "Pellentesque in est ut tellus ultricies imperdiet in viverra sapien.", "Pellentesque lobortis elit sed sapien auctor, eu hendrerit nunc feugiat.", "Suspendisse at nisl vulputate, gravida nisi in, vehicula odio.", "Quisque dictum justo rutrum felis imperdiet mollis.", "Sed vestibulum ligula vitae ipsum imperdiet, sit amet sollicitudin justo convallis.", "Duis quis quam mollis, eleifend odio in, pretium velit.", "In ultricies ante vitae urna porta vehicula.", "Fusce rutrum neque in metus vulputate varius.", "Morbi vel purus a nisl venenatis blandit.", "Aliquam luctus tellus nec malesuada laoreet.", "Sed ut libero vitae risus viverra iaculis non non quam.", "Vivamus faucibus dui eu est placerat lacinia a in nisi.", "Quisque ornare nunc in leo vulputate, eget facilisis ligula aliquet.", "Nunc semper tellus pellentesque, suscipit metus vel, convallis lorem.", "In lacinia est eget imperdiet dapibus.", "Donec sagittis lacus vel ligula consequat, nec finibus velit aliquam.", "Nulla suscipit est eu ultricies ullamcorper.", "Pellentesque bibendum enim at diam egestas aliquam.", "Sed ac mauris nec mauris commodo varius.", "Aliquam ornare ipsum pellentesque neque ultricies euismod.", "Fusce dapibus tellus vel justo gravida fringilla.", "In ac lorem sed sapien faucibus pulvinar.", "Vestibulum facilisis ante feugiat neque pharetra porttitor."];
+
+
+for(let i = 0; i < 30; ++i) {
+  let random_int = getRandomInt(texts.length - 1);
+  let name = texts[random_int];
+  let column = getRandomInt(cards_data.length);
+  let id = getCardID();
+  let tags = [];
+  let assignees = [];
+  let description = "";
+  texts.splice(random_int, 1);
+  if(Math.random() > 0.3) {
+    random_int = getRandomInt(texts.length - 1);
+    if(Math.random() > 0.7)
+      description = name + '\n' + texts[random_int];
+    else
+      description = texts[random_int];
+    texts.splice(random_int, 1);
+  }
+  for(let j = 0; j < getRandomInt(4)*getRandomInt(3)+getRandomInt(4); ++j) {
+    let tag = getRandomInt(8);
+    if(tags.indexOf(tag) == -1)
+      tags.push(tag);
+  }
+  for(let j = 0; j < getRandomInt(4); ++j) {
+    let assignee = getRandomInt(3) + 1;
+    if(assignees.indexOf(assignee) == -1)
+      assignees.push(assignee);
+  }
+  cards_data[column][id] = {
+    id: id,
+    name: name,
+    description: description,
+    column: column,
+    tags: tags,
+    assignees: assignees
+  };
 }
 
 var boardContainer = 
-            <div>
-              <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags}>
-                <Column id={1} name="Reported" locked={false}>
-                  <Card id={1} name="1" column={0} tags={[0, 3]} assignees={[1, 2]} description="a"/>
-                </Column>
-                <Column id={2} name="Confirmed">
-                  <Card id={2} name="2" column={1} tags={[0, 1, 4]} assignees={[1]}/>
-                </Column>
-              </Board>
-              <DisplayedCard id={1} name="Call a function from its name/id in order to allow arrays of functions." description={"Add an option to call functions from its name/id for more flexibility, specifically to make lists of functions. Alternatively make some kind of function object."} column={1} tags={[0, 1, 6]} assignees={[1, 3]}/>
-            </div>;
+            <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags} columns={columns_data} cards={cards_data}/>;
 
 ReactDOM.render(
   boardContainer,
   document.getElementsByTagName('body')[0]
 );
 
-document.getElementsByTagName("body")[0].className = "theme-" + window.theme;
-
-window.addEventListener("resize", boardContainer.forceUpdate);
+document.getElementsByTagName("body")[0].className = "theme-" + theme;

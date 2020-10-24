@@ -55,14 +55,13 @@
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: var(--outline-color);
+    background: var(--scrollbar-handle-color);
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     width: 0.25rem;
 }
-
 
 .vertically-scrollable {
     margin-right: 0.15rem !important;
@@ -100,7 +99,8 @@ body.theme-light {
     --icon-color: white;
     --icon-color-hover: #ffffffC0;
     --column-background-color: #ffffff40;
-    --scrollbar-track-color: #ffffff80
+    --scrollbar-handle-color: white;
+    --scrollbar-track-color: #ffffff80;
 }
 
 body.theme-dark {
@@ -113,7 +113,8 @@ body.theme-dark {
     --icon-color: #cad1e2;
     --icon-color-hover: #f8faff;
     --column-background-color: #12161f60;
-    --scrollbar-track-color: #cad1e280
+    --scrollbar-handle-color: #dfe5f5;
+    --scrollbar-track-color: #cad1e280;
 }
 
 
@@ -160,11 +161,13 @@ button:focus {
 
 .tag-color-0 {background-color: #17af7c; color: white; }
 .tag-color-1 {background-color: #fbb024; color: white; }
-.tag-color-2 {background-color: #AB0069; color: white; }
-.tag-color-3 {background-color: #D63A13; color: white; }
+.tag-color-2 {background-color: #a10087; color: white; }
+.tag-color-3 {background-color: #bb1f0a; color: white; }
 .tag-color-4 {background-color: #0092B9; color: white; }
-.tag-color-5 {background-color: #80c037; color: white; }
+.tag-color-5 {background-color: #9bc037; color: white; }
 .tag-color-6 {background-color: #7073DA; color: white; }
+.tag-color-7 {background-color: #df8041; color: white; }
+.tag-color-8 {background-color: #dd3e4c; color: white; }
 
 
 #board {
@@ -214,7 +217,7 @@ button:focus {
     height: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: right;
+    justify-content: center;
 }
 
 .column-header-name>h3 {
@@ -224,6 +227,7 @@ button:focus {
 }
 
 .column-header-name>svg,
+.column-header-options>button>svg,
 .column-header-options>svg {
     margin-left: 0.5rem;
     align-self: center;
@@ -232,10 +236,20 @@ button:focus {
     object-fit: contain;
 }
 
-.column-header-options>svg {
+.column-header-options>svg,
+.column-header-options>button>svg {
     margin-right: 1.0rem;
     margin-left: 0.0rem;
     stroke-width: 0.4rem;
+    color: var(--outline-color);
+}
+
+.column-header-options>button>svg {
+    margin-bottom: 0.125rem;
+}
+
+.column-header-options>button:hover>svg {
+    color: var(--icon-color-hover);
 }
 
 
@@ -245,6 +259,9 @@ button:focus {
     margin-top: 0.25rem;
     margin-bottom: 0.15rem;
     max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -315,26 +332,38 @@ button:focus {
 }
 
 .card img {
-    border: 0.125rem solid var(--card-background-color);
+    border: 0.175rem solid var(--card-background-color);
 }
 
 .add-card-button {
     margin-left: 0.15rem;
     margin-right: 0.15rem;
     border: 0.125rem solid;
-    height: 2.5rem;
     display: flex;
     justify-content: center;
     background-color: var(--column-background-color);
+    border-color: var(--outline-color);
+    height: 2.5rem;
+    opacity: 100%;
 }
 
+.add-card-button:hover {
+    border: 0.125rem solid;
+    border-color: var(--icon-color-hover);
+}
+
+.add-card-button:hover>svg {
+    color: var(--icon-color-hover);
+}
 
 .add-card-button>svg {
     align-self: center;
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0.625rem;
     object-fit: contain;
     stroke-width: 0.4rem;
+    color: var(--outline-color);
 }
 
 
@@ -351,6 +380,7 @@ button:focus {
     justify-content: center;
     background-color: var(--column-background-color);
     overflow-y: hidden;
+    -display: none;
 }
 
 .displayed-card-container {
@@ -497,13 +527,14 @@ button:focus {
     color: var(--card-color);
 }
 
-.displayed-card-assignees>ul>li>button>span:hover {
+.displayed-card-assignees>ul>li>buttons:not(#add-assignee)>span:hover {
     color: var(--card-color-hover);
 }
 
 #add-assignee,
 #add-due-date,
-#add-task-list,
+#add-task,
+#add-description,
 #add-tag,
 #add-files {
     color: var(--card-color);
@@ -515,7 +546,8 @@ button:focus {
 
 #add-assignee:hover,
 #add-due-date:hover,
-#add-task-list:hover,
+#add-task:hover,
+#add-description:hover,
 #add-files:hover,
 #add-tag:hover {
     opacity: 60%;
@@ -523,13 +555,15 @@ button:focus {
 }
 
 #add-due-date,
-#add-task-list,
+#add-task,
+#add-description,
 #add-files {
     margin-top: 0.25rem;
 }
 
 #add-due-date>svg,
-#add-task-list>svg,
+#add-task>svg,
+#add-description>svg,
 #add-files>svg {
     align-self: center;
     width: 1.0rem;
