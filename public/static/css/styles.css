@@ -45,22 +45,29 @@
 
 /* width */
 ::-webkit-scrollbar {
-    width: 0.15rem;
+    width: 0.325rem;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track-color);
+    background: transparent;
+    border-left: var(--scrollbar-track-color) solid 0.15rem;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-handle-color);
+    background: transparent;
+    border-left: var(--scrollbar-handle-color) solid 0.15rem;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    width: 0.25rem;
+    border-left: var(--icon-color-hover) solid 0.15rem;
+}
+
+/* Handle on pressed */
+::-webkit-scrollbar-thumb:active {
+    border-left: var(--scrollbar-handle-color) solid 0.35rem;
 }
 
 .vertically-scrollable {
@@ -93,6 +100,7 @@ body.theme-light {
     --color: white;
     --outline-color: white;
     --card-background-color: white;
+    --card-hover-background-color: #eeeeee;
     --card-icon-color: black;
     --card-color: black;
     --card-color-hover:#404040;
@@ -101,20 +109,23 @@ body.theme-light {
     --column-background-color: #ffffff40;
     --scrollbar-handle-color: white;
     --scrollbar-track-color: #ffffff80;
+    --shadow-color:  #00000020;
 }
 
 body.theme-dark {
     --color: #cad1e2;
     --outline-color: #b4bbcc;
     --card-background-color: #252c3b;
+    --card-hover-background-color: #2f384b;
     --card-icon-color: #cad1e2;
     --card-color: #cad1e2;
     --card-color-hover: #f8faff;
     --icon-color: #cad1e2;
     --icon-color-hover: #f8faff;
     --column-background-color: #12161f60;
-    --scrollbar-handle-color: #dfe5f5;
+    --scrollbar-handle-color: #d2d9e7;
     --scrollbar-track-color: #cad1e280;
+    --shadow-color:  #000000aa;
 }
 
 
@@ -168,6 +179,17 @@ button:focus {
 .tag-color-6 {background-color: #7073DA; color: white; }
 .tag-color-7 {background-color: #df8041; color: white; }
 .tag-color-8 {background-color: #dd3e4c; color: white; }
+
+
+
+@keyframes opacity-ease-in {
+    from {
+        opacity: 0%;
+    }
+    to {
+        opacity: 100%;
+    }
+}
 
 
 #board {
@@ -276,6 +298,14 @@ button:focus {
     border: none;
     border-radius: 0rem;
     font: normal normal normal 1rem/1.2rem Corbel;
+    -webkit-transition: background-color 0.5s, box-shadow 0.5s;
+    transition: background-color 0.5s, box-shadow 0.5s;
+}
+
+.card:hover {
+    background-color: var(--card-hover-background-color);
+    box-shadow: 0 0 0.5rem 0rem var(--shadow-color);
+    --card-background-color: var(--card-hover-background-color);
 }
 
 .card>p {
@@ -345,6 +375,8 @@ button:focus {
     border-color: var(--outline-color);
     height: 2.5rem;
     opacity: 100%;
+    -webkit-transition: border-color 0.5s, color 0.5s;
+    transition: border-color 0.5s, color 0.5s;
 }
 
 .add-card-button:hover {
@@ -378,9 +410,8 @@ button:focus {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    background-color: var(--column-background-color);
+    background-color: #00000040;
     overflow-y: hidden;
-    -display: none;
 }
 
 .displayed-card-container {
@@ -400,6 +431,11 @@ button:focus {
     margin-left: 3rem;
     padding: 2.5rem;
     font-size: 1.25rem;
+    animation-name: opacity-ease-in;
+    /*animation-duration: 0.125s;*/
+    /*animation-iteration-count: 1;*/
+    /*animation-timing-function: ease;*/
+    /*animation-fill-mode: forwards;*/
 }
 
 .displayed-card-details {
@@ -525,9 +561,11 @@ button:focus {
     align-self: center;
     margin-left: 0.75rem;
     color: var(--card-color);
+    -webkit-transition: color 0.125s;
+    transition: color 0.125s;
 }
 
-.displayed-card-assignees>ul>li>buttons:not(#add-assignee)>span:hover {
+.displayed-card-assignees>ul>li>button:not(#add-assignee)>span:hover {
     color: var(--card-color-hover);
 }
 
@@ -542,6 +580,8 @@ button:focus {
     display: flex;
     flex-direction: row;
     justify-content: left;
+    -webkit-transition: color 0.125s, opacity 0.125s;
+    transition: color 0.125s, opacity 0.125s;
 }
 
 #add-assignee:hover,
@@ -589,6 +629,8 @@ button:focus {
     flex-direction: row;
     margin-top: 1.0rem;
     height: 1.5rem;
+    -webkit-transition: color 0.125s;
+    transition: color 0.125s;
 }
 
 .displayed-card-options>button:hover {
@@ -666,6 +708,8 @@ button:focus {
 
 .displayed-card-right-buttons button {
     color:  var(--icon-color);
+    -webkit-transition: color 0.125s;
+    transition: color 0.125s;
 }
 
 .displayed-card-right-buttons button:hover {

@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {v4 as uuid} from 'uuid';
-import './index.css';
+const shortcut = require('./shortcut.js').shortcut;
+console.log(shortcut);
 
 
 var board = {};
@@ -10,6 +11,8 @@ var id_current;
 var id_available;
 //var columns = {};
 var theme = "dark";
+
+const FONT_SIZE = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue('font-size'));
 
 const ICON_DESCRIPTION = <svg viewBox="0 0 64 64" strokeWidth="6" stroke="currentColor" fill="none"><line x1="0" y1="8" x2="64" y2="8"/><line x1="0" y1="32" x2="64" y2="32"/><line x1="0" y1="56" x2="48" y2="56"/></svg>;
 const ICON_PLUS = <svg viewBox="0 0 64 64" strokeWidth="6" stroke="currentColor" fill="none"><line x1="32" y1="7" x2="32" y2="57"/><line x1="7" y1="32" x2="57" y2="32"/></svg>;
@@ -221,7 +224,7 @@ class Card extends React.Component {
     try {
       let column_width = ReactDOM.findDOMNode(this).clientWidth;
       column_width -= ReactDOM.findDOMNode(this).getElementsByTagName("span")[0].clientWidth; // ID width and margins
-      column_width /= 16;
+      column_width /= FONT_SIZE;
       column_width -= 2.5; // Card margins and padding
       if (this.state.description !== "")
         column_width -= 1.5; // Description icon
@@ -229,7 +232,7 @@ class Card extends React.Component {
       if (this.state.assignees.length >= 1)
         column_width -= 2.5; // Assignee avatar
       if (this.state.assignees.length >= 2)
-        column_width -= 1.0625; // 2nd assignee avatar
+        column_width -= 1.25; // 2nd assignee avatar
       if (this.state.assignees.length >= 3)
         column_width -= 1.0; // 3nd assignee avatar
       
@@ -300,7 +303,7 @@ class Column extends React.Component {
             <h3>{this.state.name}</h3>
           </div>
           <div className="column-header-options">
-            <button onClick={() => { board.addCard(this.id, { id: getCardID(), name: "", description: "", column: this.id, tags: [], assignees: []}, true); }}>
+            <button onClick={() => { board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: []}, true); /*this.resize();*/ }}>
               {ICON_PLUS}
             </button>
             {ICON_OPTIONS}
@@ -308,7 +311,7 @@ class Column extends React.Component {
         </div>
         <div className="card-list">
           {this.props.children}
-          <button className="add-card-button" onClick={() => { board.addCard(this.id, { id: getCardID(), name: "", description: "", column: this.id, tags: [], assignees: []}); }}>
+          <button className="add-card-button" onClick={() => { board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: []}); /*this.resize();*/ }}>
             {ICON_PLUS}
           </button>
         </div>
@@ -318,12 +321,12 @@ class Column extends React.Component {
     );
   }
 
-  resize = () => {
+  resize = () => {/*
     let card_list = ReactDOM.findDOMNode(this).getElementsByClassName("card-list")[0];
     if (card_list.scrollHeight > card_list.offsetHeight)
         card_list.classList.add("vertically-scrollable");
     else
-        card_list.classList.remove("vertically-scrollable");
+      card_list.classList.remove("vertically-scrollable");*/
   }
     
   componentDidMount() {
@@ -343,6 +346,9 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.id;
+    shortcut.add("escape", () => {
+      this.displayCard(-1);
+    });
     this.state = {
       project_id: props.project_id,
       name: props.name,
@@ -352,14 +358,21 @@ class Board extends React.Component {
       users: props.users,
       id_current: props.id_current,
       id_available: props.id_available,
+      id_unique_mode: props.id_unique_mode,
+      archived: props.archived,
       displayed_card: props.displayed_card
     };
     board = this;
   }
 
+  updateState(updated_state) {
+    updated_state = Object.assign(this.state, updated_state);
+    this.setState(updated_state);
+  }
+
   getCardID() {
     let id;
-    if(this.state.id_available.isEmpty()) {
+    if(this.state.id_unique_mode || this.state.id_available.isEmpty()) {
       id = this.state.id_current;
       this.state.id_current++;
       return(id);
@@ -370,13 +383,14 @@ class Board extends React.Component {
   }
   
   deleteCardID(id) {
-    if(id === this.state.id_current - 1)
+    if(!this.state.id_unique_mode && id === this.state.id_current - 1)
       this.state.id_current = id;
     else
       this.state.id_available.push(id);
   }
 
   addCard(column_id, card, first=false) {
+    card.id = this.getCardID();
     let cards = this.state.cards;
     let columns = this.state.columns;
     if(first)
@@ -384,53 +398,30 @@ class Board extends React.Component {
     else
       columns[column_id].cards.push(card.id);
     cards[card.id] = card;
-    this.setState({      
-      project_id: this.state.project_id,
-      name: this.state.name,
-      cards: cards,
-      columns: columns,
-      tags: this.state.tags,
-      users: this.state.users,
-      id_current: this.state.id_current,
-      displayed_card: this.state.displayed_card,
-      id_available: this.state.id_available
-    });
+    this.updateState({cards: cards, columns: columns});
   }
 
   deleteCard(card_id) {
     let columns = this.state.columns;
     let cards = this.state.cards;
-    console.log(cards)
     columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
     delete cards[card_id];
-    this.setState({      
-      project_id: this.state.project_id,
-      name: this.state.name,
-      cards: cards,
-      columns: columns,
-      tags: this.state.tags,
-      users: this.state.users,
-      id_current: this.state.id_current,
-      displayed_card: -1,
-      id_available: this.state.id_available
-    });
+    this.updateState({cards: cards, columns: columns, displayed_card: -1});
     this.deleteCardID(card_id);
+  }
+
+  archiveCard(card_id) {
+    let columns = this.state.columns;
+    let cards = this.state.cards;
+    let archived = this.state.archived;
+    columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
+    archived.push(card_id);
+    this.updateState({cards: cards, columns: columns, displayed_card: -1, archived: archived});
   }
 
   // If a card is pressed, to open it full-screen we save its ID into board.displayed_card
   displayCard(card_id=-1) { // If a displayed card is closed, we clear the ID from board.displayed_card by putting -1 instead
-    let displayed_card = card_id;
-    this.setState({      
-      project_id: this.state.project_id,
-      name: this.state.name,
-      cards: this.state.cards,
-      columns: this.state.columns,
-      tags: this.state.tags,
-      users: this.state.users,
-      id_current: this.state.id_current,
-      displayed_card: displayed_card,
-      id_available: this.state.id_available
-    });
+    this.updateState({displayed_card: card_id});
   }
 
   render() {
@@ -470,7 +461,7 @@ class Board extends React.Component {
 
     return(
 
-    <div>
+    <>
       <div className="row" id="board">
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div className="col-lg-1"></div>
@@ -478,7 +469,7 @@ class Board extends React.Component {
         <div className="col-lg-1"></div>
       </div>
       {displayed_card}
-    </div>
+    </>
 
     );
   }
@@ -609,7 +600,7 @@ class DisplayedCard extends Card {
                 {ICON_FORWARD}<span>Forward</span>
               </button>
               <div className="divider"/>
-              <button id="archive-card-button">
+              <button id="archive-card-button" onClick={() => {board.archiveCard(this.props.id);}}>
                 {ICON_ARCHIVE}<span>Archive</span>
               </button>
               <button id="delete-card-button" onClick={() => {board.deleteCard(this.props.id);}}>
@@ -671,8 +662,10 @@ Board.defaultProps = {
   columns: [],
   users: {},
   tags: {},
+  archived: [],
   displayed_card: -1,
   id_current: 1,
+  id_unique_mode: false,
   id_available: new BinaryHeap()
 };
 
@@ -764,12 +757,12 @@ for(let i = 0; i < 30; ++i) {
   }
   for(let j = 0; j < getRandomInt(4)*getRandomInt(3)+getRandomInt(4); ++j) {
     let tag = getRandomInt(8);
-    if(tags.indexOf(tag) == -1)
+    if(tags.indexOf(tag) === -1)
       tags.push(tag);
   }
   for(let j = 0; j < getRandomInt(4); ++j) {
     let assignee = getRandomInt(3) + 1;
-    if(assignees.indexOf(assignee) == -1)
+    if(assignees.indexOf(assignee) === -1)
       assignees.push(assignee);
   }
   cards_json[id] = {
@@ -787,7 +780,7 @@ console.log(cards_json);
 console.log(columns_json);
 
 var boardContainer = 
-            <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags} columns={columns_json} cards={cards_json}/>;
+            <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags} columns={columns_json} cards={cards_json} id_available={id_available} id_current={id_current}/>;
 
 ReactDOM.render(
   boardContainer,
