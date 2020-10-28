@@ -11,7 +11,7 @@ var idCurrent;
 var idAvailable;
 //var columns = {};
 var preferencies = {
-  theme: "dark",
+  theme: "light",
   warnOnDelete: true
 };
 
@@ -44,6 +44,7 @@ const ICON_LINK = <svg viewBox="0 0 15.25 19.032"><g transform="translate(0.125 
 const ICON_FORWARD = <svg viewBox="0 0 18.893 17.766"><g transform="translate(0.875 0.891)"><path d="M10.272,20.66h3.194v6.308H10.272a.762.762,0,0,1-.762-.762V21.422A.762.762,0,0,1,10.272,20.66Z" transform="translate(-9.51 -16.986)" fill="none" stroke="currentColor" strokeWidth="1.75" /><path d="M19.89,21V14.694s1.666.038,4.436,0,6.014-1.791,8.122-3.583a.381.381,0,0,1,.629.286V24.314a.381.381,0,0,1-.614.3c-1.357-1.067-4.734-3.453-8-3.552C22.546,21,21,21,19.89,21Z" transform="translate(-15.934 -11.02)" fill="none" stroke="currentColor" strokeWidth="1.75" /><path d="M18.463,43.234H16.633a.762.762,0,0,1-.762-.762L15.49,37.22h3.354l.381,5.252A.762.762,0,0,1,18.463,43.234Z" transform="translate(-13.211 -27.234)" fill="none" stroke="currentColor" strokeWidth="1.75" /></g></svg>;
 const ICON_ARCHIVE = <svg viewBox="0 0 18.5 14.264"><g transform="translate(0.25 0.25)"><path d="M17.473,60.25H.527A.527.527,0,0,0,0,60.777v3.177a.527.527,0,0,0,.527.527h.532v9a.527.527,0,0,0,.527.527H16.414a.527.527,0,0,0,.527-.527v-9h.532A.527.527,0,0,0,18,63.955V60.777A.527.527,0,0,0,17.473,60.25ZM15.886,72.959H2.114V64.482H15.886Zm1.059-9.532H1.055V61.3H16.945Z" transform="translate(0 -60.25)" stroke="currentColor" fill="currentColor" strokeWidth="0.5" /><path d="M182.336,214.048h2.118a1.586,1.586,0,0,0,0-3.173h-2.118a1.586,1.586,0,0,0,0,3.173Zm0-2.118h2.118a.532.532,0,0,1,0,1.063h-2.118a.532.532,0,0,1,0-1.063Z" transform="translate(-174.396 -205.58)" stroke="currentColor" fill="currentColor" strokeWidth="0.5" /></g></svg>;
 const ICON_SUBSCRIBE = <svg viewBox="0 0 16.17 19.5"><g transform="translate(0.75 0.75)"><path d="M12,26.816V24.96A1.9,1.9,0,0,0,13.852,23.1V17.237a4.875,4.875,0,0,1,5.237-4.867c4.647,0,5.747,2.707,5.747,4.691v6.374s-.136,1.54,1.834,1.54v1.834Z" transform="translate(-12 -10.569)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /><path d="M30.958,9.4V8.894a1.434,1.434,0,1,0-2.868,0v.462" transform="translate(-22.189 -7.46)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /><path d="M29.946,51.76a1.753,1.753,0,1,1-3.506,0" transform="translate(-21.144 -35.513)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /></g></svg>;
+const ICON_TICK = <svg viewBox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg>;
 
 
 class BinaryHeap {
@@ -178,15 +179,15 @@ class Card extends React.Component {
   }
 
   setDescription(description) {
-    this.setState({ name: this.state.name, tags: this.state.tags, column: this.state.column, assignees: this.state.assignees, taskList: this.state.taskList, description: description });
+    this.updateState({ description: description });
   }
 
   addTag(tag) {
-    this.setState({ name: this.state.name, tags: this.state.tags + [tag], column: this.state.column, assignees: this.state.assignees, taskList: this.state.taskList, description: this.state.description });
+    this.updateState({tags: this.state.tags + [tag] });
   }
 
   addAssignee(assignee) {
-    this.setState({ name: this.state.name, tags: this.state.tags, column: this.state.column, assignees: this.state.assignees + [assignee], taskList: this.state.taskList, description: this.state.description });
+    this.updateState({ assignees: this.state.assignees + [assignee] });
   }
 
   render() {
@@ -210,10 +211,29 @@ class Card extends React.Component {
       rendered_tags.push(<div className={class_name}></div>);
     }
 
+    let task_list_components = [];
+    if(this.state.taskList.length > 0) {
+      let taskList = this.state.taskList;
+      // Sort so that the bar is continuous
+      taskList = taskList.sort((a, b) => { a = (a.done ? 0 : 1); b = (b.done ? 0 : 1); return(a - b); });
+      taskList.forEach(task => {
+        task_list_components.push(
+          <li className={task.done ? "task-done" : "task-todo"}/>
+        );
+      });
+      task_list_components =  <>
+                                <ol className="task-list">
+                                  <li>{ICON_CHECK}</li>
+                                  {task_list_components}
+                                </ol>
+                              </>;
+    }
+
     return (
 
       <div className="card" onClick={() => { board.displayCard(this.id); }}>
         <p>{this.state.name}</p>
+        {task_list_components}
         <div>
           {(this.state.description === "" || this.state.description === undefined) ? null : ICON_DESCRIPTION}
           <span>#{board.state.project_id}-{this.props.id}</span>
@@ -227,6 +247,7 @@ class Card extends React.Component {
     );
   }
 
+  // Calculate how many tags will be rendered in full length depending on how much space is available
   renderTags() {
     let large_tag_count;
     try {
@@ -258,6 +279,7 @@ class Card extends React.Component {
     return (large_tag_count);
   }
 
+  // On resize, re-calculate how many tags have the space to be fully displayed and tasklist bar width
   resize = () => {
     let large_number = this.renderTags();
     let i = 1;
@@ -272,15 +294,24 @@ class Card extends React.Component {
       }
       i++;
     }
+    let task_list = ReactDOM.findDOMNode(this).getElementsByClassName("task-list")[0];
+    if(task_list !== undefined) {
+      task_list.style.marginRight = 0.25 + (this.state.taskList.length > 0 ? 1.0 : 0) + Math.min(3, this.state.assignees.length) * 1.75 + "rem";
+      console.log(task_list.style.marginRight);
+    }
   }
 
   componentDidMount() {
     this.resize();
     window.addEventListener('resize', this.resize);
+    // Save the resize function, as it is useful for cases other than actual resize
+    board.state.cards[this.props.id].resizeFunction = this.resize;
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.resize);
+    if(this.props.id in board.state.cards && !(this.props.id in board.state.archived))
+      delete board.state.cards[this.props.id].resizeFunction;
   }
 
 }
@@ -410,7 +441,7 @@ class Board extends React.Component {
     else
       columns[column_id].cards.push(card.id);
     cards[card.id] = card;
-    this.updateState({ cards: cards, columns: columns });
+    this.updateState({ cards: cards, columns: columns, displayedCard: card.id });
   }
 
   deleteCard(card_id) {
@@ -453,7 +484,7 @@ class Board extends React.Component {
       column_data.forEach(card_id => {
         const card = this.state.cards[card_id];
         column.push( // Add the card's component into the list for a column
-          <Card key={card.id.toString()} id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} assignees={card.assignees} />
+          <Card key={card.id.toString()} id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />
         );
       });
       // Add the filled column to the main list of components
@@ -473,7 +504,7 @@ class Board extends React.Component {
     let displayedCard = null;
     if (this.state.displayedCard !== -1) {
       let card = this.state.cards[this.state.displayedCard];
-      displayedCard = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} assignees={card.assignees} />;
+      displayedCard = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />;
     }
 
     // If a dialog is open full-screen right now, make a component for it
@@ -484,14 +515,12 @@ class Board extends React.Component {
                   <h2>Are you sure you want to delete this card?</h2>
                   <p>You will not be able to recover it.</p>
                   <input id="do-not-confirm" type="checkbox" name="do-not-confirm" style={{display: "none"}} value="do-not-confirm"/>
-                  <label className="checkbox" for="do-not-confirm">
-                    <span>
-                      <svg viewbox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg>
-                    </span>
+                  <label className="checkbox" htmlFor="do-not-confirm">
+                    <span><svg viewBox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg></span>
                     <span>Do not ask me again</span>
                   </label> 
                   <div className="actions">
-                    <button onClick={() => { board.updateState({dialog: -1}); preferencies.warnOnDelete = !document.getElementById("do-not-confirm").checked;;}}>Cancel</button>
+                    <button onClick={() => { board.updateState({dialog: -1});}}>Cancel</button>
                     <div className="delete-buttons">
                       <button onClick={() => { board.updateState({dialog: -1}); board.archiveCard(board.state.displayedCard); preferencies.warnOnDelete = !document.getElementById("do-not-confirm").checked;}}>Archive</button>
                       <button onClick={() => { board.updateState({dialog: -1}); board.deleteCard(board.state.displayedCard); preferencies.warnOnDelete = !document.getElementById("do-not-confirm").checked;}} className="critical">Delete</button>
@@ -522,14 +551,52 @@ class Board extends React.Component {
 
 class DisplayedCard extends Card {
 
+  removeTask(i) {
+    let taskList = this.state.taskList;
+    taskList.splice(i, 1);
+    this.updateState({taskList: taskList});
+    board.state.cards[this.props.id].taskList = taskList;
+  }
+
   removeTag(tag) {
     let tags = this.state.tags;
     tags.splice(this.state.tags.indexOf(tag), 1);
     this.updateState({tags: tags});
-    board.state.cards[this.props.id].tags = tags;
+    let cards = board.state.cards;
+    cards[this.props.id].tags = tags;
+    board.updateState({cards: cards});
+  }
+
+  removeAssignee(assignee) {
+    let assignees = this.state.assignees;
+    assignees.splice(this.state.assignees.indexOf(assignee), 1);
+    this.updateState({assignees: assignees});
+    board.state.cards[this.props.id].assignees = assignees;
   }
 
   render() {
+
+    let taskList = []
+    for (let i = 0; i < this.state.taskList.length; i++) {
+      const task = this.state.taskList[i];
+      taskList.push(
+        <li className="displayed-task">
+          <input id={"task-" + i} type="checkbox" name={"task-" + i} style={{display: "none"}} value={"task-" + i} defaultChecked={task.done}/>
+          <label className="checkbox checkbox-small crossed" htmlFor={"task-" + i}>
+            <span><svg viewBox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg></span>
+            <span>{task.task}</span>
+          </label>
+          <button className="remove-task" onClick={() => { this.removeTask(i); }}>
+            <svg viewBox="0 0 64 64" stroke="currentColor" fill="currentColor"><line x1="18" y1="32" x2="46" y2="32" /></svg>
+          </button>
+        </li>
+      );
+    }
+    taskList.push(
+      <button id="add-task">
+        {ICON_PLUS}<span>Add</span>
+      </button>
+    );
 
     let tags = []
     this.state.tags.forEach(tag => {
@@ -537,7 +604,7 @@ class DisplayedCard extends Card {
         tags.push(
           <span className={`tag-color-${board.state.tags[tag].color}`}>
             {board.state.tags[tag].name}
-            <button class="remove-card-tag" onClick={() => { this.removeTag(tag); }}>
+            <button className="remove-card-tag" onClick={() => { this.removeTag(tag); }}>
               <svg viewBox="0 0 64 64" stroke="currentColor" fill="currentColor"><line x1="18" y1="32" x2="46" y2="32" /></svg>
             </button>
           </span>
@@ -553,10 +620,13 @@ class DisplayedCard extends Card {
     this.state.assignees.forEach(assignee => {
       assignees.push(
         <li className="displayed-assignee">
-          <button>
+          <div>
             <img src={users[assignee].avatar} />
+            <button className="remove-card-assignee" onClick={() => { this.removeAssignee(assignee); }}>
+              <svg viewBox="0 0 64 64" stroke="currentColor" fill="currentColor"><line x1="18" y1="32" x2="46" y2="32" /></svg>
+            </button>
             <span>{users[assignee].name}</span>
-          </button>
+          </div>
         </li>
       );
     });
@@ -600,9 +670,9 @@ class DisplayedCard extends Card {
                 <div className="displayed-card-section-name">
                   {ICON_CHECK}<span>Task list</span>
                 </div>
-                <button id="add-task">
-                  {ICON_PLUS}<span>Add</span>
-                </button>
+                <ol>
+                  {taskList}
+                </ol>
               </div>
               <div className="displayed-card-section displayed-card-tags">
                 <div className="displayed-card-section-name">
@@ -640,20 +710,20 @@ class DisplayedCard extends Card {
               <button id="duplicate-card-button">
                 {ICON_DUPLICATE}<span>Duplicate</span>
               </button>
-              <button id="save-template-card-button">
+              <button id="save-template-card-button" style={{display: "none"}}>
                 {ICON_SAVE_TEMPLATE}<span>Save template</span>
               </button>
-              <div className="divider" />
-              <button id="subscribe-card-button">
+              <div className="divider" style={{display: "none"}}/>
+              <button id="subscribe-card-button" style={{display: "none"}}>
                 {ICON_SUBSCRIBE}<span>Subscribe</span>
               </button>
-              <button id="star-card-button">
+              <button id="star-card-button" style={{display: "none"}}>
                 {ICON_STAR}<span>Star</span>
               </button>
               <button id="link-card-button">
                 {ICON_LINK}<span>Copy link</span>
               </button>
-              <button id="forward-card-button">
+              <button id="forward-card-button" style={{display: "none"}}>
                 {ICON_FORWARD}<span>Forward</span>
               </button>
               <div className="divider" />
@@ -691,6 +761,25 @@ class DisplayedCard extends Card {
       </div>
 
     );
+  }
+
+  componentDidMount() {
+    for (let i = 0; i < this.state.taskList.length; i++) {
+      document.getElementById("task-" + i).addEventListener("change", (evt) => {
+        let checkbox = evt.target;
+        let task_list = this.state.taskList;
+        task_list[i].done = checkbox.checked;
+        this.updateState({taskList: task_list});
+        board.state.cards[this.props.id].taskList = task_list;
+      });
+    }
+  }
+
+  // If some of the properties of the card have been changed, we have to re-render it on the board.
+  // To do this, we'll simulate a resize, unless the card has been deleted.
+  componentWillUnmount() {
+    if(this.props.id in board.state.cards && !(this.props.id in board.state.archived))
+      board.state.cards[this.props.id].resizeFunction();
   }
 
   resize = () => {
@@ -789,6 +878,7 @@ cards_json[id] = {
   description: "Add an option to call functions from its name/id for more flexibility, specifically to make lists of functions. Alternatively make some kind of function object.",
   column: 0,
   tags: [0, 1, 6],
+  taskList: [{task: "Call function from ID", done: true}, {task: "Call function by name", done: false}, {task: "Make a function object", done: false}, {task: "Test calling a function", done: false}, {task: "Log function calls", done: false}],
   assignees: [1, 3]
 };
 columns_json[0].cards.push(id);
@@ -802,16 +892,25 @@ for (let i = 0; i < 30; ++i) {
   let column = getRandomInt(columns_json.length);
   let id = getCardID();
   let tags = [];
+  let task_list = [];
   let assignees = [];
   let description = "";
   texts.splice(random_int, 1);
   if (Math.random() > 0.3) {
     random_int = getRandomInt(texts.length - 1);
     if (Math.random() > 0.7)
-      description = name + '\n' + texts[random_int];
+      description = name + '\n' + texts.splice(random_int, 1);
     else
-      description = texts[random_int];
-    texts.splice(random_int, 1);
+      description = texts.splice(random_int, 1);
+  }
+  if (Math.random() < 0.15) {
+    for (let j = 0; j < 2 + getRandomInt(7); ++j) {
+      random_int = getRandomInt(texts.length - 1);
+      let task = {task: texts.splice(random_int, 1)}
+      if (Math.random() < 0.2 + column / 6.0)
+        task.done = true;
+      task_list.push(task);
+    }
   }
   for (let j = 0; j < getRandomInt(4) * getRandomInt(3) + getRandomInt(4); ++j) {
     let tag = getRandomInt(8);
@@ -829,6 +928,7 @@ for (let i = 0; i < 30; ++i) {
     description: description,
     column: column,
     tags: tags,
+    taskList: task_list,
     assignees: assignees
   };
   columns_json[column].cards.push(id);
