@@ -11,7 +11,7 @@ var idCurrent;
 var idAvailable;
 //var columns = {};
 var preferencies = {
-  theme: "light",
+  theme: "dark",
   warnOnDelete: true
 };
 
@@ -175,11 +175,20 @@ class Card extends React.Component {
 
   updateState(updated_state) {
     updated_state = Object.assign(this.state, updated_state);
+    this.name = updated_state.name
     this.setState(updated_state);
+    let cards = board.state.cards;
+    cards[this.props.id] = Object.assign(cards[this.props.id], updated_state);
+    board.updateState({cards: cards});
   }
 
   setDescription(description) {
     this.updateState({ description: description });
+  }
+
+  setName(name) {
+    this.name = name;
+    this.updateState({ name: name });
   }
 
   addTag(tag) {
@@ -192,8 +201,10 @@ class Card extends React.Component {
 
   render() {
 
-    let large_tag_count = 0;//this.renderTags();
+    this.name = board.state.cards[this.props.id].name;
+    this.state.description = board.state.cards[this.props.id].description;
 
+    let large_tag_count = 0;//this.renderTags();
     let rendered_tags = [];
     let class_name;
     for (let i = 0; i < this.state.tags.length; ++i) {
@@ -205,7 +216,6 @@ class Card extends React.Component {
         class_name += " tag-color-" + board.state.tags[this.state.tags[i]].color;
       }
       catch {
-        console.log(this.state.tags[i]);
         class_name += " tag-color-" + this.state.tags[i];
       }
       rendered_tags.push(<div className={class_name}></div>);
@@ -214,12 +224,11 @@ class Card extends React.Component {
     let task_list_components = [];
     if(this.state.taskList.length > 0) {
       let taskList = this.state.taskList;
-      // Sort so that the bar is continuous
-      taskList = taskList.sort((a, b) => { a = (a.done ? 0 : 1); b = (b.done ? 0 : 1); return(a - b); });
       taskList.forEach(task => {
-        task_list_components.push(
-          <li className={task.done ? "task-done" : "task-todo"}/>
-        );
+        if(task.done)
+        task_list_components = [<li className={"task-done"}/>].concat(task_list_components);
+        else
+          task_list_components.push(<li className={"task-todo"}/>);
       });
       task_list_components =  <>
                                 <ol className="task-list">
@@ -232,7 +241,7 @@ class Card extends React.Component {
     return (
 
       <div className="card" onClick={() => { board.displayCard(this.id); }}>
-        <p>{this.state.name}</p>
+        <p>{this.name}</p>
         {task_list_components}
         <div>
           {(this.state.description === "" || this.state.description === undefined) ? null : ICON_DESCRIPTION}
@@ -254,12 +263,12 @@ class Card extends React.Component {
       let column_width = ReactDOM.findDOMNode(this).clientWidth;
       column_width -= ReactDOM.findDOMNode(this).getElementsByTagName("span")[0].clientWidth; // ID width and margins
       column_width /= FONT_SIZE;
-      column_width -= 2.5; // Card margins and padding
+      column_width -= 2.75; // Card margins and padding
       if (this.state.description !== "")
         column_width -= 1.5; // Description icon
       column_width -= 1.25; // Right margin
       if (this.state.assignees.length >= 1)
-        column_width -= 2.5; // Assignee avatar
+        column_width -= 2.75; // Assignee avatar
       if (this.state.assignees.length >= 2)
         column_width -= 1.25; // 2nd assignee avatar
       if (this.state.assignees.length >= 3)
@@ -297,7 +306,6 @@ class Card extends React.Component {
     let task_list = ReactDOM.findDOMNode(this).getElementsByClassName("task-list")[0];
     if(task_list !== undefined) {
       task_list.style.marginRight = 0.25 + (this.state.taskList.length > 0 ? 1.0 : 0) + Math.min(3, this.state.assignees.length) * 1.75 + "rem";
-      console.log(task_list.style.marginRight);
     }
   }
 
@@ -385,12 +393,6 @@ class Board extends React.Component {
   constructor(props) {
     super(props);
     this.id = props.id;
-    shortcut.add("escape", () => {
-      this.displayCard(-1);
-    });
-    shortcut.add("delete", () => {
-      board.archiveCard(board.state.displayedCard);
-    });
     this.state = {
       project_id: props.project_id,
       name: props.name,
@@ -546,6 +548,28 @@ class Board extends React.Component {
     );
   }
 
+  componentDidMount() {
+    shortcut.add("escape", () => {
+      if(document.activeElement.contentEditable == "true") {
+        return;
+      }
+      this.displayCard(-1);
+    });
+    shortcut.add("delete", () => {
+      if(document.activeElement.contentEditable == "true")
+        return;
+      if(preferencies.warnOnDelete)
+        board.updateState({dialog: "delete-confirmation"});
+      else
+        board.deleteCard(this.props.id);
+    });
+  }
+
+  componentWillUnmount() {
+    shortcut.remove("escape");
+    shortcut.remove("delete");
+  }
+
 }
 
 
@@ -555,7 +579,9 @@ class DisplayedCard extends Card {
     let taskList = this.state.taskList;
     taskList.splice(i, 1);
     this.updateState({taskList: taskList});
-    board.state.cards[this.props.id].taskList = taskList;
+    let cards = board.state.cards;
+    cards[this.props.id].taskList = taskList;
+    board.updateState({cards: cards});
   }
 
   removeTag(tag) {
@@ -571,7 +597,21 @@ class DisplayedCard extends Card {
     let assignees = this.state.assignees;
     assignees.splice(this.state.assignees.indexOf(assignee), 1);
     this.updateState({assignees: assignees});
-    board.state.cards[this.props.id].assignees = assignees;
+    let cards = board.state.cards;
+    cards[this.props.id].assignees = assignees;
+    board.updateState({cards: cards});
+  }
+
+  editContent(event) {
+    let element = event.target;
+    if (event.key === "Escape") {
+      // restore state
+      document.execCommand("undo");
+      element.blur();
+    }
+    else if (event.key === "Enter") {
+      element.blur();
+    }
   }
 
   render() {
@@ -641,7 +681,9 @@ class DisplayedCard extends Card {
 
     let description = this.state.description;
     if (this.state.description !== "")
-      description = <p>{description}</p>;
+      description = <p contentEditable="true" id="displayed-card-description" 
+                       onBlur={ () => { this.setDescription(document.getElementById("displayed-card-description").innerText); }}
+                       onKeyDown={(e) => { this.editContent(e); }}>{description}</p>;
     else {
       description = <button id="add-description">
         {ICON_PLUS}<span>Add</span>
@@ -654,7 +696,9 @@ class DisplayedCard extends Card {
         <div className="displayed-card-container">
           <div className="displayed-card" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
-              <h2>{this.state.name}</h2>
+              <h2 id="displayed-card-name" contentEditable="true" 
+                  onBlur={ () => { this.setName(document.getElementById("displayed-card-name").innerText); }} 
+                  onKeyDown={(e) => { this.editContent(e); }}>{this.state.name}</h2>
               <div>
                 <span>in </span><span className="displayed-card-column">{board.state.columns[this.state.column].name}</span>{ICON_DROPDOWN_ARROW}
               </div>
@@ -730,7 +774,8 @@ class DisplayedCard extends Card {
               <button id="archive-card-button" onClick={() => { board.archiveCard(this.props.id); }}>
                 {ICON_ARCHIVE}<span>Archive</span>
               </button>
-              <button id="delete-card-button" className="critical-on-hover" onClick={() => { if(preferencies.warnOnDelete) {board.updateState({dialog: "delete-confirmation"});} else {board.deleteCard(this.props.id);} }}>
+              <button id="delete-card-button" className="critical-on-hover" 
+                      onClick={() => { if(preferencies.warnOnDelete) {board.updateState({dialog: "delete-confirmation"});} else {board.deleteCard(this.props.id);} }}>
                 {ICON_TRASH}<span>Delete</span>
               </button>
             </div>
@@ -778,8 +823,9 @@ class DisplayedCard extends Card {
   // If some of the properties of the card have been changed, we have to re-render it on the board.
   // To do this, we'll simulate a resize, unless the card has been deleted.
   componentWillUnmount() {
-    if(this.props.id in board.state.cards && !(this.props.id in board.state.archived))
+    if(this.props.id in board.state.cards && !(this.props.id in board.state.archived)) {
       board.state.cards[this.props.id].resizeFunction();
+    }
   }
 
   resize = () => {
@@ -903,7 +949,7 @@ for (let i = 0; i < 30; ++i) {
     else
       description = texts.splice(random_int, 1);
   }
-  if (Math.random() < 0.15) {
+  if (Math.random() < 0.1) {
     for (let j = 0; j < 2 + getRandomInt(7); ++j) {
       random_int = getRandomInt(texts.length - 1);
       let task = {task: texts.splice(random_int, 1)}
