@@ -464,7 +464,9 @@ label.checkbox.checkbox-small>span:first-child svg {
 }
 
 .card>p {
+    max-height: 3.5em;
     margin-bottom: 0.25rem;
+    overflow-y: hidden;
 }
 
 .card>.task-list {
@@ -641,6 +643,7 @@ label.checkbox.checkbox-small>span:first-child svg {
     padding-bottom: 0.5rem;
     max-height: 55vh;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .displayed-card-header {
@@ -684,6 +687,10 @@ label.checkbox.checkbox-small>span:first-child svg {
     margin-bottom: 0.0rem;
     transition: all 0.25s;
     display: inline-block;
+    max-height: 10rem;
+    max-width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .displayed-card p[contentEditable="true"]:focus,
@@ -693,13 +700,15 @@ label.checkbox.checkbox-small>span:first-child svg {
     background-color: var(--card-background-color-highlighted);
     opacity: 80%;
     padding: 0.125rem;
-    padding-left: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
     transition: all 0.125s;
 }
 .displayed-card h2[contentEditable="true"]:focus {
     opacity: 85%;
     padding: 0.25rem;
     padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 .displayed-card-section {
@@ -757,6 +766,35 @@ label.checkbox.checkbox-small>span:first-child svg {
 
 .displayed-task label.checkbox span:last-child {
     width: 90%;
+}
+
+.displayed-task label.checkbox span:last-child[contentEditable="true"]:focus {
+    outline: none;
+    border: var(--card-background-color-highlighted) solid 0.15rem;
+    background-color: var(--card-background-color-highlighted);
+    opacity: 80%;
+    padding: 0.125rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    transition: all 0.125s;
+}
+
+.displayed-task .edit-task {
+    opacity: 0%;
+    margin-right: 0.75em;
+    width: 0.5rem;
+    height: 0.5rem;
+    transition: opacity 0.15s;
+}
+
+ol:hover .displayed-task .edit-task {
+    opacity: 100%;
+}
+
+.displayed-task .edit-task svg {
+    color: var(--card-color);
+    object-fit: contain;
+    stroke-width: 0.4rem;
 }
 
 .displayed-task .remove-task {

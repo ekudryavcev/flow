@@ -1,7 +1,9 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { v4 as uuid } from 'uuid';
-const shortcut = require('./shortcut.js').shortcut;
+import React from "react";
+import ReactDOM from "react-dom";
+import ContentEditable from "react-contenteditable"
+import sanitizeHtml from "sanitize-html";
+import { v4 as uuid } from "uuid";
+const shortcut = require("./shortcut.js").shortcut;
 console.log(shortcut);
 
 
@@ -44,7 +46,7 @@ const ICON_LINK = <svg viewBox="0 0 15.25 19.032"><g transform="translate(0.125 
 const ICON_FORWARD = <svg viewBox="0 0 18.893 17.766"><g transform="translate(0.875 0.891)"><path d="M10.272,20.66h3.194v6.308H10.272a.762.762,0,0,1-.762-.762V21.422A.762.762,0,0,1,10.272,20.66Z" transform="translate(-9.51 -16.986)" fill="none" stroke="currentColor" strokeWidth="1.75" /><path d="M19.89,21V14.694s1.666.038,4.436,0,6.014-1.791,8.122-3.583a.381.381,0,0,1,.629.286V24.314a.381.381,0,0,1-.614.3c-1.357-1.067-4.734-3.453-8-3.552C22.546,21,21,21,19.89,21Z" transform="translate(-15.934 -11.02)" fill="none" stroke="currentColor" strokeWidth="1.75" /><path d="M18.463,43.234H16.633a.762.762,0,0,1-.762-.762L15.49,37.22h3.354l.381,5.252A.762.762,0,0,1,18.463,43.234Z" transform="translate(-13.211 -27.234)" fill="none" stroke="currentColor" strokeWidth="1.75" /></g></svg>;
 const ICON_ARCHIVE = <svg viewBox="0 0 18.5 14.264"><g transform="translate(0.25 0.25)"><path d="M17.473,60.25H.527A.527.527,0,0,0,0,60.777v3.177a.527.527,0,0,0,.527.527h.532v9a.527.527,0,0,0,.527.527H16.414a.527.527,0,0,0,.527-.527v-9h.532A.527.527,0,0,0,18,63.955V60.777A.527.527,0,0,0,17.473,60.25ZM15.886,72.959H2.114V64.482H15.886Zm1.059-9.532H1.055V61.3H16.945Z" transform="translate(0 -60.25)" stroke="currentColor" fill="currentColor" strokeWidth="0.5" /><path d="M182.336,214.048h2.118a1.586,1.586,0,0,0,0-3.173h-2.118a1.586,1.586,0,0,0,0,3.173Zm0-2.118h2.118a.532.532,0,0,1,0,1.063h-2.118a.532.532,0,0,1,0-1.063Z" transform="translate(-174.396 -205.58)" stroke="currentColor" fill="currentColor" strokeWidth="0.5" /></g></svg>;
 const ICON_SUBSCRIBE = <svg viewBox="0 0 16.17 19.5"><g transform="translate(0.75 0.75)"><path d="M12,26.816V24.96A1.9,1.9,0,0,0,13.852,23.1V17.237a4.875,4.875,0,0,1,5.237-4.867c4.647,0,5.747,2.707,5.747,4.691v6.374s-.136,1.54,1.834,1.54v1.834Z" transform="translate(-12 -10.569)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /><path d="M30.958,9.4V8.894a1.434,1.434,0,1,0-2.868,0v.462" transform="translate(-22.189 -7.46)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /><path d="M29.946,51.76a1.753,1.753,0,1,1-3.506,0" transform="translate(-21.144 -35.513)" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.75" /></g></svg>;
-const ICON_TICK = <svg viewBox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg>;
+const ICON_EDIT = <svg aviewBox="0 0 18.002 18.055"><g transform="translate(1.002 1)"><path d="M10.353,23.206l-.277,2.448a.365.365,0,0,0,.4.4l2.434-.281a.365.365,0,0,0,.215-.106L25.859,12.9a.73.73,0,0,0,0-1.033l-1.638-1.645a.73.73,0,0,0-1.036,0L10.459,22.994a.365.365,0,0,0-.106.212Z" transform="translate(-10.073 -10.008)" fill="none" stroke="currentColor" strokeWidth="2"/><line x2="2.638" y2="2.714" transform="translate(11.397 1.934)" fill="none" stroke="currentColor" strokeWidth="2"/></g></svg>;
 
 
 class BinaryHeap {
@@ -184,11 +186,28 @@ class Card extends React.Component {
 
   setDescription(description) {
     this.updateState({ description: description });
+    try {
+      document.getElementById("displayed-card-description").innerText = description
+    }
+    catch {}
+  }
+
+  setTask(i, new_task) {
+    let tasks = this.state.taskList;
+    tasks[i].task = new_task;
+    this.updateState({ taskList: tasks });
   }
 
   setName(name) {
+    if(name === "") {
+      name = "Issue #" + this.props.id;
+    }
     this.name = name;
     this.updateState({ name: name });
+    try {
+      document.getElementById("displayed-card-name").innerText = name
+    }
+    catch {}
   }
 
   addTag(tag) {
@@ -230,12 +249,10 @@ class Card extends React.Component {
         else
           task_list_components.push(<li className={"task-todo"}/>);
       });
-      task_list_components =  <>
-                                <ol className="task-list">
-                                  <li>{ICON_CHECK}</li>
-                                  {task_list_components}
-                                </ol>
-                              </>;
+      task_list_components =  <ol className="task-list">
+                                <li>{ICON_CHECK}</li>
+                                {task_list_components}
+                              </ol>;
     }
 
     return (
@@ -248,9 +265,9 @@ class Card extends React.Component {
           <span>#{board.state.project_id}-{this.props.id}</span>
           {rendered_tags}
         </div>
-        {this.state.assignees.length >= 3 ? <img src={users[this.state.assignees[2]].avatar} style={{ right: '2.75rem' }} /> : null}
-        {this.state.assignees.length >= 2 ? <img src={users[this.state.assignees[1]].avatar} style={{ right: '1.75rem' }} /> : null}
-        {this.state.assignees.length >= 1 ? <img src={users[this.state.assignees[0]].avatar} /> : null}
+        {this.state.assignees.length >= 3 ? <img src={users[this.state.assignees[2]].avatar} alt={users[this.state.assignees[2]].name.toString()} style={{ right: '2.75rem' }} /> : null}
+        {this.state.assignees.length >= 2 ? <img src={users[this.state.assignees[1]].avatar} alt={users[this.state.assignees[1]].name.toString()} style={{ right: '1.75rem' }} /> : null}
+        {this.state.assignees.length >= 1 ? <img src={users[this.state.assignees[0]].avatar} alt={users[this.state.assignees[0]].name.toString()} /> : null}
       </div>
 
     );
@@ -305,7 +322,7 @@ class Card extends React.Component {
     }
     let task_list = ReactDOM.findDOMNode(this).getElementsByClassName("task-list")[0];
     if(task_list !== undefined) {
-      task_list.style.marginRight = 0.25 + (this.state.taskList.length > 0 ? 1.0 : 0) + Math.min(3, this.state.assignees.length) * 1.75 + "rem";
+      task_list.style.marginRight = (this.state.taskList.length > 0 ? 1.75 : 0) + Math.min(3, this.state.assignees.length) * 1.5 + "rem";
     }
   }
 
@@ -447,7 +464,7 @@ class Board extends React.Component {
   }
 
   deleteCard(card_id) {
-    if (!card_id in this.state.cards)
+    if (!(card_id in this.state.cards))
       return;
     let columns = this.state.columns;
     let cards = this.state.cards;
@@ -534,7 +551,7 @@ class Board extends React.Component {
 
     return (
 
-      <>
+      <div>
         <div className="row" id="board">
           <noscript>You need to enable JavaScript to run this app.</noscript>
           <div className="col-lg-1"></div>
@@ -543,20 +560,20 @@ class Board extends React.Component {
         </div>
         {displayedCard}
         {dialog}
-      </>
+      </div>
 
     );
   }
 
   componentDidMount() {
     shortcut.add("escape", () => {
-      if(document.activeElement.contentEditable == "true") {
+      if(document.activeElement.contentEditable === "true") {
         return;
       }
       this.displayCard(-1);
     });
     shortcut.add("delete", () => {
-      if(document.activeElement.contentEditable == "true")
+      if(document.activeElement.contentEditable === "true")
         return;
       if(preferencies.warnOnDelete)
         board.updateState({dialog: "delete-confirmation"});
@@ -575,13 +592,25 @@ class Board extends React.Component {
 
 class DisplayedCard extends Card {
 
+  constructor(props) {
+    super(props);
+    this.descriptionComponent = React.createRef();
+  };
+
   removeTask(i) {
     let taskList = this.state.taskList;
     taskList.splice(i, 1);
     this.updateState({taskList: taskList});
+    // Remove event listener
+    //document.getElementById("task-" + i).removeEventListener("change");
     let cards = board.state.cards;
     cards[this.props.id].taskList = taskList;
     board.updateState({cards: cards});
+    for (let j = 0; j < taskList.length; j++) {
+      const task = document.getElementById("task-" + j);
+      task.checked = taskList[j].done;
+    }
+    
   }
 
   removeTag(tag) {
@@ -602,17 +631,28 @@ class DisplayedCard extends Card {
     board.updateState({cards: cards});
   }
 
-  editContent(event) {
+  editContent(event, exitOnEnter=true) {
     let element = event.target;
     if (event.key === "Escape") {
       // restore state
       document.execCommand("undo");
       element.blur();
     }
-    else if (event.key === "Enter") {
+    else if (event.key === "Enter" && exitOnEnter) {
       element.blur();
     }
   }
+
+  addDescription() {
+    document.getElementById("displayed-card-description").style.display = "inline-block";
+    document.getElementById("displayed-card-description").focus();
+    document.getElementById("add-description").style.display = "none";
+  }
+
+  descriptionSanitizeConf = {
+    allowedTags: ["b", "i", "em", "strong", "a", "p"],
+    allowedAttributes: { a: ["href"] }
+  };
 
   render() {
 
@@ -624,8 +664,24 @@ class DisplayedCard extends Card {
           <input id={"task-" + i} type="checkbox" name={"task-" + i} style={{display: "none"}} value={"task-" + i} defaultChecked={task.done}/>
           <label className="checkbox checkbox-small crossed" htmlFor={"task-" + i}>
             <span><svg viewBox="0 0 12 9"><polyline points="1 5 4 8 11 1"></polyline></svg></span>
-            <span>{task.task}</span>
+            <span id={"task-text-" + i}
+                  onBlur={ () => { 
+                    let elem = document.getElementById("task-text-" + i);
+                    let new_task = elem.innerText;
+                    if(new_task === "") {
+                      document.execCommand("undo");
+                      elem.blur();
+                    }
+                    else
+                      this.setTask(i, new_task);
+                    elem.contentEditable = false; }}
+                  onKeyDown={e => { this.editContent(e); }}>
+              {task.task}
+            </span>
           </label>
+          <button className="edit-task" onClick={() => { document.getElementById("task-text-" + i).contentEditable = true; document.getElementById("task-text-" + i).focus() }}>
+            {ICON_EDIT}
+          </button>
           <button className="remove-task" onClick={() => { this.removeTask(i); }}>
             <svg viewBox="0 0 64 64" stroke="currentColor" fill="currentColor"><line x1="18" y1="32" x2="46" y2="32" /></svg>
           </button>
@@ -661,7 +717,7 @@ class DisplayedCard extends Card {
       assignees.push(
         <li className="displayed-assignee">
           <div>
-            <img src={users[assignee].avatar} />
+            <img src={users[assignee].avatar} alt={users[assignee].name.toString()} />
             <button className="remove-card-assignee" onClick={() => { this.removeAssignee(assignee); }}>
               <svg viewBox="0 0 64 64" stroke="currentColor" fill="currentColor"><line x1="18" y1="32" x2="46" y2="32" /></svg>
             </button>
@@ -679,16 +735,38 @@ class DisplayedCard extends Card {
       </li>
     );
 
-    let description = this.state.description;
+    let description;
+    let add_btn_style = {}
+    let desc_style = {}
     if (this.state.description !== "")
-      description = <p contentEditable="true" id="displayed-card-description" 
-                       onBlur={ () => { this.setDescription(document.getElementById("displayed-card-description").innerText); }}
-                       onKeyDown={(e) => { this.editContent(e); }}>{description}</p>;
-    else {
-      description = <button id="add-description">
-        {ICON_PLUS}<span>Add</span>
-      </button>;
-    }
+      add_btn_style = {"display": "none"};
+    else
+      desc_style = {"display": "none"};
+    description = <div className="displayed-card-section displayed-card-description">
+                    <div className="displayed-card-section-name">
+                      {ICON_DESCRIPTION}<span>Description</span>
+                    </div>
+                    <ContentEditable
+                      id="displayed-card-description"
+                      innerRef={this.descriptionComponent}
+                      html={this.state.description} // innerHTML of the editable div
+                      disabled={false}
+                      onKeyDown={event => { this.editContent(event, false); }}
+                      onBlur={event => {
+                        this.setDescription(sanitizeHtml(event.target.innerHTML, this.descriptionSanitizeConf));
+                        if(event.target.innerText === '') {
+                          event.target.style.display = "none";
+                          document.getElementById("add-description").style.display = "flex";
+                        }}}
+                      tagName='p' // Use a custom HTML tag (uses a div by default)
+                      style={desc_style}
+                    />
+                    <button id="add-description" 
+                            onClick={ () => { this.addDescription(); }}
+                            style={add_btn_style}>
+                      {ICON_PLUS}<span>Add</span>
+                    </button>
+                  </div>;
 
     return (
 
@@ -697,18 +775,17 @@ class DisplayedCard extends Card {
           <div className="displayed-card" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
               <h2 id="displayed-card-name" contentEditable="true" 
-                  onBlur={ () => { this.setName(document.getElementById("displayed-card-name").innerText); }} 
-                  onKeyDown={(e) => { this.editContent(e); }}>{this.state.name}</h2>
+                  onBlur={ () => { 
+                    this.setName(document.getElementById("displayed-card-name").innerText); 
+                  }} 
+                  onKeyDown={e => { this.editContent(e); }}>
+                {this.state.name}
+              </h2>
               <div>
                 <span>in </span><span className="displayed-card-column">{board.state.columns[this.state.column].name}</span>{ICON_DROPDOWN_ARROW}
               </div>
             </div>
-            <div className="displayed-card-section displayed-card-description">
-              <div className="displayed-card-section-name">
-                {ICON_DESCRIPTION}<span>Description</span>
-              </div>
-              {description}
-            </div>
+            {description}
             <div className="displayed-card-details">
               <div className="displayed-card-section displayed-card-task-list">
                 <div className="displayed-card-section-name">
@@ -781,7 +858,7 @@ class DisplayedCard extends Card {
             </div>
             <div className="displayed-card-footer">
               <div className="displayed-card-created">
-                <img src={users[this.props.creator].avatar} style={{ right: '2.75rem' }} />
+                <img src={users[this.props.creator].avatar} alt={users[this.props.creator].name.toString()} style={{ right: '2.75rem' }} />
                 <span className="displayed-card-creator">
                   {users[this.props.creator].name} <span>created this card on</span><span className="number"> {this.props.creation_date}</span>
                 </span>
@@ -791,7 +868,7 @@ class DisplayedCard extends Card {
               </div>
             </div>
           </div>
-          <div className="displayed-card-right-buttons" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
+          <div className="displayed-card-right-buttons" onClick={e => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-right-top-buttons">
               <button onClick={() => { board.displayCard(-1); }}>{ICON_CROSS}</button>
               <button>{ICON_INFO}</button>
@@ -809,8 +886,9 @@ class DisplayedCard extends Card {
   }
 
   componentDidMount() {
+    // Add event listeners to the tasklist checkboxes
     for (let i = 0; i < this.state.taskList.length; i++) {
-      document.getElementById("task-" + i).addEventListener("change", (evt) => {
+      document.getElementById("task-" + i).addEventListener("change", evt => {
         let checkbox = evt.target;
         let task_list = this.state.taskList;
         task_list[i].done = checkbox.checked;
@@ -818,19 +896,25 @@ class DisplayedCard extends Card {
         board.state.cards[this.props.id].taskList = task_list;
       });
     }
+    // If this is a new card, focus on the name input
+    if(this.state.name === "") {
+      document.getElementById("displayed-card-name").focus();
+    }
   }
 
   // If some of the properties of the card have been changed, we have to re-render it on the board.
   // To do this, we'll simulate a resize, unless the card has been deleted.
   componentWillUnmount() {
-    if(this.props.id in board.state.cards && !(this.props.id in board.state.archived)) {
-      board.state.cards[this.props.id].resizeFunction();
+    try {
+      if(this.props.id in board.state.cards && !(this.props.id in board.state.archived)) {
+        board.state.cards[this.props.id].resizeFunction();
+      }
     }
+    catch {}
+    document.activeElement.blur();
   }
 
-  resize = () => {
-
-  }
+  resize = () => {}
 }
 
 Card.defaultProps = {
@@ -964,7 +1048,7 @@ for (let i = 0; i < 30; ++i) {
       tags.push(tag);
   }
   for (let j = 0; j < getRandomInt(4); ++j) {
-    let assignee = getRandomInt(3) + 1;
+    let assignee = getRandomInt(4) + 1;
     if (assignees.indexOf(assignee) === -1)
       assignees.push(assignee);
   }

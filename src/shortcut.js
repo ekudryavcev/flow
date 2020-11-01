@@ -1,4 +1,3 @@
-'use strict';
 
 /**
  * http://www.openjs.com/scripts/events/keyboard_shortcuts/
@@ -28,7 +27,6 @@ exports.shortcut = {
 
 		var ele = opt.target;
 		if(typeof opt.target == 'string') ele = document.getElementById(opt.target);
-		var ths = this;
 		shortcut_combination = shortcut_combination.toLowerCase();
 
 		//The function to be called at keypress
@@ -39,9 +37,9 @@ exports.shortcut = {
 				var element;
 				if(e.target) element=e.target;
 				else if(e.srcElement) element=e.srcElement;
-				if(element.nodeType==3) element=element.parentNode;
+				if(element.nodeType===3) element=element.parentNode;
 
-				if(element.tagName == 'INPUT' || element.tagName == 'TEXTAREA') return;
+				if(element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') return;
 			}
 
 			let code;
@@ -51,8 +49,8 @@ exports.shortcut = {
 			else if (e.which) code = e.which;
 			var character = String.fromCharCode(code).toLowerCase();
 			
-			if(code == 188) character=","; //If the user presses , when the type is onkeydown
-			if(code == 190) character="."; //If the user presses , when the type is onkeydown
+			if(code === 188) character=","; //If the user presses , when the type is onkeydown
+			if(code === 190) character="."; //If the user presses , when the type is onkeydown
 
 			var keys = shortcut_combination.split("+");
 			//Key Pressed - counts the number of valid keypresses - if it is same as the number of keys, the shortcut function is invoked
@@ -150,42 +148,42 @@ exports.shortcut = {
 			for(var i=0; i<keys.length; i++) {
 				let k=keys[i];
 				//Modifiers
-				if(k == 'ctrl' || k == 'control') {
+				if(k === 'ctrl' || k === 'control') {
 					kp++;
 					modifiers.ctrl.wanted = true;
 
-				} else if(k == 'shift') {
+				} else if(k === 'shift') {
 					kp++;
 					modifiers.shift.wanted = true;
 
-				} else if(k == 'alt') {
+				} else if(k === 'alt') {
 					kp++;
 					modifiers.alt.wanted = true;
-				} else if(k == 'meta') {
+				} else if(k === 'meta') {
 					kp++;
 					modifiers.meta.wanted = true;
 				} else if(k.length > 1) { //If it is a special key
-					if(special_keys[k] == code) kp++;
+					if(special_keys[k] === code) kp++;
 					
 				} else if(opt['keycode']) {
-					if(opt['keycode'] == code) kp++;
+					if(opt['keycode'] === code) kp++;
 
 				} else { //The special keys did not match
-					if(character == k) kp++;
+					if(character === k) kp++;
 					else {
 						if(shift_nums[character] && e.shiftKey) { //Stupid Shift key bug created by using lowercase
 							character = shift_nums[character]; 
-							if(character == k) kp++;
+							if(character === k) kp++;
 						}
 					}
 				}
 			}
 			
-			if(kp == keys.length && 
-						modifiers.ctrl.pressed == modifiers.ctrl.wanted &&
-						modifiers.shift.pressed == modifiers.shift.wanted &&
-						modifiers.alt.pressed == modifiers.alt.wanted &&
-						modifiers.meta.pressed == modifiers.meta.wanted) {
+			if(kp === keys.length && 
+						modifiers.ctrl.pressed === modifiers.ctrl.wanted &&
+						modifiers.shift.pressed === modifiers.shift.wanted &&
+						modifiers.alt.pressed === modifiers.alt.wanted &&
+						modifiers.meta.pressed === modifiers.meta.wanted) {
 				callback(e);
 	
 				if(!opt['propagate']) { //Stop the event
