@@ -280,7 +280,7 @@ class Card extends React.Component {
       let column_width = ReactDOM.findDOMNode(this).clientWidth;
       column_width -= ReactDOM.findDOMNode(this).getElementsByTagName("span")[0].clientWidth; // ID width and margins
       column_width /= FONT_SIZE;
-      column_width -= 2.75; // Card margins and padding
+      column_width -= 3.0; // Card margins and padding
       if (this.state.description !== "")
         column_width -= 1.5; // Description icon
       column_width -= 1.25; // Right margin
@@ -595,6 +595,7 @@ class DisplayedCard extends Card {
   constructor(props) {
     super(props);
     this.descriptionComponent = React.createRef();
+    this.nameComponent = React.createRef();
   };
 
   removeTask(i) {
@@ -650,8 +651,13 @@ class DisplayedCard extends Card {
   }
 
   descriptionSanitizeConf = {
-    allowedTags: ["b", "i", "em", "strong", "a", "p"],
+    allowedTags: ["b", "i", "em", "strong", "a", "p", "br", "div"],
     allowedAttributes: { a: ["href"] }
+  };
+
+  nameSanitizeConf = {
+    allowedTags: [],
+    allowedAttributes: {}
   };
 
   render() {
@@ -774,13 +780,17 @@ class DisplayedCard extends Card {
         <div className="displayed-card-container">
           <div className="displayed-card" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
-              <h2 id="displayed-card-name" contentEditable="true" 
-                  onBlur={ () => { 
-                    this.setName(document.getElementById("displayed-card-name").innerText); 
-                  }} 
-                  onKeyDown={e => { this.editContent(e); }}>
-                {this.state.name}
-              </h2>
+              <ContentEditable
+                id="displayed-card-name"
+                innerRef={this.nameComponent}
+                disabled={false}
+                onBlur={ () => { 
+                  this.setName(document.getElementById("displayed-card-name").innerText); 
+                }} 
+                tagName='h2'
+                onKeyDown={e => { this.editContent(e); }}
+                html={this.state.name}
+              />
               <div>
                 <span>in </span><span className="displayed-card-column">{board.state.columns[this.state.column].name}</span>{ICON_DROPDOWN_ARROW}
               </div>
