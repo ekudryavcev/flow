@@ -1,13 +1,19 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/flow_frontend/node_modules
-/flow_frontend/.pnp
-/flow_frontend/.pnp.js
+flow_frontend/node_modules
+flow_frontend/.pnp
+flow_frontend/.pnp.js
 .vscode
 
 # testing
 /coverage
+
+# Environments
+.env
+.venv
+env/
+venv/
 
 # production
 /build
