@@ -707,11 +707,15 @@ label.checkbox.checkbox-small>span:first-child svg {
     justify-content: left;
 }
 
-.displayed-card-header>div>.displayed-card-column {
-    margin-left: 0.375rem;
-    margin-right: 0.25rem;
+#displayed-card-column {
+    padding-left: 0.375rem;
+    padding-right: 0.25rem;
     font-weight: bold;
     text-decoration: underline;
+    color: var(--card-color);
+    background-color: var(--card-background-color);
+    outline: none;
+    border: none;
 }
 
 .displayed-card-header>div>svg {
