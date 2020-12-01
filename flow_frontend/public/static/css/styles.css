@@ -479,6 +479,10 @@ label.checkbox.checkbox-small>span:first-child svg {
     overflow-y: auto;
 }
 
+.card-list-droppable {
+    margin-bottom: 0.0rem;
+}
+
 .card {
     color: var(--card-color);
     background-color: var(--card-background-color);

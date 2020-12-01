@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import ContentEditable from "react-contenteditable"
 import sanitizeHtml from "sanitize-html";
 import { v4 as uuid } from "uuid";
+import { Draggable, Droppable } from "react-drag-and-drop";
 const shortcut = require("./shortcut.js").shortcut;
 console.log(shortcut);
 
@@ -264,19 +265,20 @@ class Card extends React.Component {
     }
 
     return (
-
-      <div className="card" onClick={() => { board.displayCard(this.id); }}>
-        <p>{this.name}</p>
-        {task_list_components}
-        <div>
-          {(this.state.description === "" || this.state.description === undefined) ? null : ICON_DESCRIPTION}
-          <span>#{board.state.project_id}-{this.props.id}</span>
-          {rendered_tags}
-        </div>
-        {this.state.assignees.length >= 3 ? <img src={users[this.state.assignees[2]].avatar} alt={users[this.state.assignees[2]].name.toString()} style={{ right: '2.75rem' }} /> : null}
-        {this.state.assignees.length >= 2 ? <img src={users[this.state.assignees[1]].avatar} alt={users[this.state.assignees[1]].name.toString()} style={{ right: '1.75rem' }} /> : null}
-        {this.state.assignees.length >= 1 ? <img src={users[this.state.assignees[0]].avatar} alt={users[this.state.assignees[0]].name.toString()} /> : null}
-      </div>
+      <Draggable type="card" data={this.id}>
+        <li className="card" onClick={() => { board.displayCard(this.id); }}>
+          <p>{this.name}</p>
+          {task_list_components}
+          <div>
+            {(this.state.description === "" || this.state.description === undefined) ? null : ICON_DESCRIPTION}
+            <span>#{board.state.project_id}-{this.props.id}</span>
+            {rendered_tags}
+          </div>
+          {this.state.assignees.length >= 3 ? <img src={users[this.state.assignees[2]].avatar} alt={users[this.state.assignees[2]].name.toString()} style={{ right: '2.75rem' }} /> : null}
+          {this.state.assignees.length >= 2 ? <img src={users[this.state.assignees[1]].avatar} alt={users[this.state.assignees[1]].name.toString()} style={{ right: '1.75rem' }} /> : null}
+          {this.state.assignees.length >= 1 ? <img src={users[this.state.assignees[0]].avatar} alt={users[this.state.assignees[0]].name.toString()} /> : null}
+        </li>
+      </Draggable>
 
     );
   }
@@ -382,7 +384,13 @@ class Column extends React.Component {
             </div>
           </div>
           <div className="card-list">
-            {this.props.children}
+            <Droppable
+                types={["card"]}
+                onDrop={this.onDrop.bind(this)}>
+                <ol className="card-list-droppable">
+                  {this.props.children}
+                </ol>
+            </Droppable>
             <button className="add-card-button" onClick={() => { board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: [] }); /*this.resize();*/ }}>
               {ICON_PLUS}
             </button>
@@ -391,6 +399,25 @@ class Column extends React.Component {
       </div>
 
     );
+  }
+
+  onDrop(data) {
+    let card_id = data.card,
+        card = board.state.cards[card_id],
+        all_columns = board.state.columns;
+    if(this.id === card.column)
+      return;
+    all_columns[card.column].cards.splice(all_columns[card.column].cards.indexOf(card_id), 1);
+    all_columns[this.id].cards.push(card_id);
+    
+    board.updateState({columns: all_columns});
+    this.setState({
+      name: this.state.name,
+      locked: this.state.locked,
+      description: this.state.description,
+      cards: all_columns[this.id]
+    });
+      
   }
 
   resize = () => {/*

@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # add rest_framework support to the project
+    'rest_framework',
+    
+    # add 'flow' app name so Django plugs it in to the project.
+    'flow'
 ]
 
 MIDDLEWARE = [
