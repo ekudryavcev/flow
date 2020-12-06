@@ -1,4 +1,5 @@
 import React from "react";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import BinaryHeap from "../../BinaryHeap";
 
 import Card from "../Card/Card";
@@ -31,69 +32,78 @@ export default class Board extends React.Component {
   }
 
   updateState(updated_state) {
-      updated_state = Object.assign(this.state, updated_state);
-      this.setState(updated_state);
+    updated_state = Object.assign(this.state, updated_state);
+    this.setState(updated_state);
   }
 
   addCard(column_id, card, first = false) {
-      card.id = this.getCardID();
-      let cards = this.state.cards;
-      let columns = this.state.columns;
-      if (first)
-        columns[column_id].cards = [card.id].concat(columns[column_id].cards);
-      else
-        columns[column_id].cards.push(card.id);
-      cards[card.id] = card;
-      this.updateState({ cards: cards, columns: columns, displayedCard: card.id });
+    card.id = this.getCardID();
+    let cards = this.state.cards;
+    let columns = this.state.columns;
+    if (first)
+      columns[column_id].cards = [card.id].concat(columns[column_id].cards);
+    else
+      columns[column_id].cards.push(card.id);
+    cards[card.id] = card;
+    this.updateState({ cards: cards, columns: columns, displayedCard: card.id });
+    window.history.pushState("Card " + card.id, "Card #" + card.id, "/board/card=" + card.id);
   }
 
   getCardID() {
-      let id;
-      if (this.state.idAvailable.isEmpty()) {
-        id = this.state.idCurrent;
-        this.state.idCurrent++;
-        return (id);
-      }
-      else {
-        return (this.state.idAvailable.pop());
-      }
+    let id;
+    if (this.state.idAvailable.isEmpty()) {
+      id = this.state.idCurrent;
+      this.state.idCurrent++;
+      return (id);
+    }
+    else {
+      return (this.state.idAvailable.pop());
+    }
   }
   
   deleteCardID(id) {
-      if (id === this.state.idCurrent - 1) {
-        this.state.idCurrent = id;
-      }
-      else {
-        this.state.idAvailable.push(id);
-      }
+    if (id === this.state.idCurrent - 1) {
+      this.state.idCurrent = id;
+    }
+    else {
+      this.state.idAvailable.push(id);
+    }
   }
 
   deleteCard(card_id) {
-      if (!(card_id in this.state.cards))
-        return;
-      let columns = this.state.columns;
-      let cards = this.state.cards;
-      columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
-      delete cards[card_id];
-      this.updateState({ cards: cards, columns: columns, displayedCard: -1 });
-      this.deleteCardID(card_id);
+    if (!(card_id in this.state.cards))
+      return;
+    let columns = this.state.columns;
+    let cards = this.state.cards;
+    columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
+    delete cards[card_id];
+    this.updateState({ cards: cards, columns: columns, displayedCard: -1 });
+    this.deleteCardID(card_id);
+    window.history.pushState("Flow", "Flow", "/board");
   }
 
   archiveCard(card_id) {
-      console.log(this);
-      if (!(card_id in this.state.cards))
-        return;
-      let columns = this.state.columns;
-      let cards = this.state.cards;
-      let archived = this.state.archived;
-      columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
-      archived.push(card_id);
-      this.updateState({ cards: cards, columns: columns, displayedCard: -1, archived: archived });
+    console.log(this);
+    if (!(card_id in this.state.cards))
+      return;
+    let columns = this.state.columns;
+    let cards = this.state.cards;
+    let archived = this.state.archived;
+    columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
+    archived.push(card_id);
+    this.updateState({ cards: cards, columns: columns, displayedCard: -1, archived: archived });
+    window.history.pushState("Flow", "Flow", "/board");
   }
 
   // If a card is pressed, to open it full-screen we save its ID into board.displayedCard
   displayCard(card_id = -1) { // If a displayed card is closed, we clear the ID from board.displayedCard by putting -1 instead
-      this.updateState({ displayedCard: card_id });
+    if(!(card_id in this.state.cards))
+      card_id = -1;
+    this.updateState({ displayedCard: card_id });
+    if(card_id === -1)
+      window.history.pushState("Flow", "Flow", "/board");
+    else
+      window.history.pushState("Card " + card_id, "Card #" + card_id, "/board/card=" + card_id);
   }
 
   render() {
@@ -124,6 +134,12 @@ export default class Board extends React.Component {
       );
     }
 
+    // If the URL indicates there is a card displayed - display it
+    if(window.location.pathname.match(/card=\d+/)) {
+      let card_id = parseInt(window.location.pathname.match(/card=\d+/)[0].replace(/[^0-9]/g, ''));
+      if(card_id in this.state.cards)
+        this.state.displayedCard = card_id;
+    }
     // If a card is open full-screen right now, make a component for it
     let displayedCard = null;
     if (this.state.displayedCard !== -1) {

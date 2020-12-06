@@ -183,7 +183,7 @@ export default class DisplayedCard extends Card {
       <ContentEditable
         id="displayed-card-description"
         innerRef={this.descriptionComponent}
-        html={this.state.description} // innerHTML of the editable div
+        html={this.state.description.toString()} // innerHTML of the editable div
         disabled={false}
         onKeyDown={event => { this.editContent(event, false); }}
         onBlur={event => {
@@ -205,7 +205,7 @@ export default class DisplayedCard extends Card {
     return (
 
       <div className="displayed-card-background" onClick={() => { window.board.displayCard(-1); }}>
-        <div className="displayed-card-container">
+        <div className="displayed-card-container col-12 col-sm-10 col-lg-8">
           <div className="displayed-card" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
               <ContentEditable
