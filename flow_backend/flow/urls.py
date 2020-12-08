@@ -1,11 +1,13 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 from rest_framework.routers import SimpleRouter
+from django.urls import path
 
 router = SimpleRouter()
-router.register("cards", views.CardViewSet, "cards")
-router.register("columns", views.ColumnViewSet, "columns")
-router.register("boards", views.BoardViewSet, "boards")
-router.register("users", views.UserViewSet, "users")
-router.register("tags", views.TagViewSet, "tags")
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("board", views.board),
+    path("login", views.login),
+    path("^login/$", views.LoginAPI.as_view()),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

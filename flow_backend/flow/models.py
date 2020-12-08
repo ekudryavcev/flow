@@ -4,17 +4,18 @@ from django.contrib.auth.models import User as DjangoUser
 
 class User(DjangoUser):
 
-    firstname = models.CharField(max_length=50)
-    surname = models.CharField(max_length=50, null=True, blank=True)
-    lastname = models.CharField(max_length=50, null=True, blank=True)
+    preferences = models.TextField(null=True, blank=True) # In JSON format
     #  Atributes through symmetric relations:
     #   - board_roles  (Board)
     #   - assigned_to  (Card)
     #   - cards_created  (Card)
+
     #  Atributes inheritted from Django:
     #   - username  (CharField; unique)
-    #   - password  (CharField)
+    #   - password  (CharField; hashed)
     #   - email  (CharField)
+    #   - first_name  (CharField)
+    #   - last_name  (CharField)
     #   - is_superuser  (BooleanField)
         
     class Meta:

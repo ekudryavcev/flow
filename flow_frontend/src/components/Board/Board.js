@@ -1,5 +1,6 @@
 import React from "react";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { Redirect, Route, Switch, Link } from "react-router-dom";
+import { withRouter } from "react-router";
 import BinaryHeap from "../../BinaryHeap";
 
 import Card from "../Card/Card";
@@ -9,7 +10,7 @@ import DisplayedCard from "../DisplayedCard/DisplayedCard";
 const shortcut = require("../../shortcut.js").shortcut;
 
 
-export default class Board extends React.Component {
+class Board extends React.Component {
 
   constructor(props) {
     super(props);
@@ -47,6 +48,7 @@ export default class Board extends React.Component {
     cards[card.id] = card;
     this.updateState({ cards: cards, columns: columns, displayedCard: card.id });
     window.history.pushState("Card " + card.id, "Card #" + card.id, "/board/card=" + card.id);
+    return card.id;
   }
 
   getCardID() {
@@ -79,7 +81,6 @@ export default class Board extends React.Component {
     delete cards[card_id];
     this.updateState({ cards: cards, columns: columns, displayedCard: -1 });
     this.deleteCardID(card_id);
-    window.history.pushState("Flow", "Flow", "/board");
   }
 
   archiveCard(card_id) {
@@ -92,7 +93,6 @@ export default class Board extends React.Component {
     columns[cards[card_id].column].cards.splice(columns[cards[card_id].column].cards.indexOf(card_id), 1);
     archived.push(card_id);
     this.updateState({ cards: cards, columns: columns, displayedCard: -1, archived: archived });
-    window.history.pushState("Flow", "Flow", "/board");
   }
 
   // If a card is pressed, to open it full-screen we save its ID into board.displayedCard
@@ -100,13 +100,33 @@ export default class Board extends React.Component {
     if(!(card_id in this.state.cards))
       card_id = -1;
     this.updateState({ displayedCard: card_id });
-    if(card_id === -1)
-      window.history.pushState("Flow", "Flow", "/board");
-    else
-      window.history.pushState("Card " + card_id, "Card #" + card_id, "/board/card=" + card_id);
   }
 
   render() {
+
+    this.next_id = this.getCardID();
+    this.deleteCardID(this.next_id);
+
+    // If the URL indicates there is a card displayed - display it
+    //if(window.location.pathname.match(/card=\d+/)) {
+    //  let card_id = parseInt(window.location.pathname.match(/card=\d+/)[0].replace(/[^0-9]/g, ''));
+    //  if(card_id in this.state.cards && this.state.displayedCard !== card_id)
+    //    this.displayCard(card_id);
+    //}
+    // If a card is open full-screen right now, make a component for it
+    let displayedCard = null;
+    if(window.location.pathname.match(/card=\d+/)) {
+      let card_id = parseInt(window.location.pathname.match(/card=\d+/)[0].replace(/[^0-9]/g, ''));
+      if(card_id === this.next_id) {
+        displayedCard = <Redirect to={`/board/card=${card_id}`} />;
+      } else {
+        let card = this.state.cards[card_id];
+        if(card === undefined)
+          displayedCard = <Redirect to="/board" />;
+        else
+          displayedCard = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />;
+      }
+    }
 
     let cards = [];
     let columns = [];
@@ -134,19 +154,6 @@ export default class Board extends React.Component {
       );
     }
 
-    // If the URL indicates there is a card displayed - display it
-    if(window.location.pathname.match(/card=\d+/)) {
-      let card_id = parseInt(window.location.pathname.match(/card=\d+/)[0].replace(/[^0-9]/g, ''));
-      if(card_id in this.state.cards)
-        this.state.displayedCard = card_id;
-    }
-    // If a card is open full-screen right now, make a component for it
-    let displayedCard = null;
-    if (this.state.displayedCard !== -1) {
-      let card = this.state.cards[this.state.displayedCard];
-      displayedCard = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />;
-    }
-
     // If a dialog is open full-screen right now, make a component for it
     let dialog = null;
     if (this.state.dialog === "delete-confirmation") {
@@ -162,7 +169,9 @@ export default class Board extends React.Component {
                   <div className="actions">
                     <button onClick={() => { window.board.updateState({dialog: -1});}}>Cancel</button>
                     <div className="delete-buttons">
-                      <button onClick={() => { window.board.updateState({dialog: -1}); window.board.archiveCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}}>Archive</button>
+                      <button onClick={() => { window.board.updateState({dialog: -1}); window.board.archiveCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}}>
+                        <Link to="/board">Archive</Link>
+                      </button>
                       <button onClick={() => { window.board.updateState({dialog: -1}); window.board.deleteCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}} className="critical">Delete</button>
                     </div>
                   </div>
@@ -179,7 +188,14 @@ export default class Board extends React.Component {
           {columns}
           <div className="col-lg-1"></div>
         </div>
-        {displayedCard}
+        <Switch>
+          <Route exact path="/board/card=-1">
+            <Redirect to="/board" />
+          </Route>
+          <Route path="/board/card=:id">
+            {displayedCard}
+          </Route>
+        </Switch>
         {dialog}
       </div>
 
@@ -191,7 +207,7 @@ export default class Board extends React.Component {
       if(document.activeElement.contentEditable === "true") {
         return;
       }
-      this.displayCard(-1);
+      //this.displayCard(-1);
     });
     shortcut.add("delete", () => {
       if(document.activeElement.contentEditable === "true")
@@ -223,3 +239,5 @@ Board.defaultProps = {
   idReuseMode: false,
   idAvailable: new BinaryHeap()
 };
+
+export default Board;

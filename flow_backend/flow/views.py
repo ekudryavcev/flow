@@ -1,7 +1,10 @@
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.generics import GenericAPIView
+from django.shortcuts import render
+from os import path
 from .models import Card, Column, Board, User, Tag
-from .serializers import CardSerializer, ColumnSerializer, BoardSerializer, UserSerializer, TagSerializer
+from .serializers import CardSerializer, ColumnSerializer, BoardSerializer, TagSerializer, UserSerializer, LoginUserSerializer
 
 
 class CardViewSet(ModelViewSet):
@@ -32,3 +35,24 @@ class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
+
+
+class LoginAPI(GenericAPIView):
+    serializer_class = LoginUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user)
+        })
+
+
+def login(request):
+    return render(request, "index.html", context=None)
+
+
+def board(request):
+    return render(request, "index.html", context=None)

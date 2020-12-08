@@ -6,8 +6,7 @@ This is a portfolio project and the coursework for the MIPT full-stack developme
 
 ## Functionality
 
-In the current stage the project has the frontend and the backend completely separated.
-To take a look at the kanban board, you can [run a NodeJS server](#npm-start) and test a randomly generated board.
+To take a look at the kanban board, you can either [start a NodeJS server](#npm-start) or [run the Django server](#managepy-runserver) and test a randomly generated board.
 
 You'll see a five-column board with a number of cards already in it. Cards will have:
 - Name
@@ -63,6 +62,7 @@ After built, the project has the frontend code packed into the `flow_frontend/bu
 In Django, the app has the name "flow" and keeps the app-specific database-related files, such as `models.py` or migrations, in `flow_backend/flow`.
 Other files, such as `settings.py`, are in `flow_backend/flow_backend`.
 The database itself and the `manage.py` are in `flow_backend`.
+To serve, the frontend is packed with [`npm run build`](#npm-run-build) and saved to `flow_backend/templates`.
 <br/>
 
 These two folders will be packed into separate Docker containers.
@@ -70,12 +70,12 @@ These two folders will be packed into separate Docker containers.
 ### Database
 
 The models are described in `flow_backend/flow/models.py`, and consist of the following:
-- Card - individual cards, with lists of tags and users assigned to them
-- Column - columns of a board, with lists of cards
-- Board - a single board, with lists of columns, cards, tags and users that have access to it
-- Tag - tags that are used in the boards
-- User - a derivative of the Django User model
-- BoardsToUsers - relations between users and boards they have access to
+- **Card** - individual cards, with lists of tags and users assigned to them
+- **Column** - columns of a board, with lists of cards
+- **Board** - a single board, with lists of columns, cards, tags and users that have access to it
+- **Tag** - tags that are used in the boards
+- **User** - a derivative of the Django User model
+- **BoardsToUsers** - relations between users and boards they have access to
 
 
 ## Test and build
@@ -104,6 +104,7 @@ You will also see any lint errors in the console.
 Builds the app for production to the `build` folder.
 It correctly bundles React in production mode and optimizes the build for the best performance.
 The build is minified and the filenames include the hashes.
+To deploy, move the result to `flow_backend/templates`.
 
 
 ### Backend

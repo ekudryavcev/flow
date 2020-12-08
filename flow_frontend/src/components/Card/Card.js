@@ -1,11 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { Draggable } from "react-drag-and-drop";
+import { Link } from "react-router-dom";
+import {withRouter} from "react-router";
 
 import {ICON_DESCRIPTION, ICON_CHECK} from "../../svg/icons";
 
 
-export default class Card extends React.Component {
+class Card extends React.Component {
 
   constructor(props) {
     super(props);
@@ -112,7 +114,7 @@ export default class Card extends React.Component {
 
     return (
       <Draggable type="card" data={this.id}>
-        <li className="card" onClick={() => { window.board.displayCard(this.id); }}>
+        <Link to={"/board/card=" + this.id} className="card" onClick={() => { window.board.displayCard(this.id); console.log(this.id) }}>
           <p>{this.name}</p>
           {task_list_components}
           <div>
@@ -123,7 +125,7 @@ export default class Card extends React.Component {
           {this.state.assignees.length >= 3 ? <img src={window.users[this.state.assignees[2]].avatar} alt={window.users[this.state.assignees[2]].name.toString()} style={{ right: '2.75rem' }} /> : null}
           {this.state.assignees.length >= 2 ? <img src={window.users[this.state.assignees[1]].avatar} alt={window.users[this.state.assignees[1]].name.toString()} style={{ right: '1.75rem' }} /> : null}
           {this.state.assignees.length >= 1 ? <img src={window.users[this.state.assignees[0]].avatar} alt={window.users[this.state.assignees[0]].name.toString()} /> : null}
-        </li>
+        </Link>
       </Draggable>
 
     );
@@ -206,3 +208,5 @@ Card.defaultProps = {
   description: '',
   creation_date: "11.10.2020"
 };
+
+export default Card;

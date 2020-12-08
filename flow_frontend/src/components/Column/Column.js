@@ -1,5 +1,6 @@
 import React from "react";
 import { Droppable } from "react-drag-and-drop";
+import { Link } from "react-router-dom";
 import { ICON_PLUS, ICON_UNLOCKED, ICON_OPTIONS } from "../../svg/icons";
 
 export default class Column extends React.Component {
@@ -41,8 +42,10 @@ export default class Column extends React.Component {
                 {this.props.children}
               </ol>
             </Droppable>
-            <button className="add-card-button" onClick={() => { window.board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: [] }); /*this.resize();*/ }}>
-              {ICON_PLUS}
+            <button className="add-card-button" onClick={() => { window.board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: [] }) }}>
+              <Link to={`/board/card=${window.board.next_id}`}>
+                {ICON_PLUS}
+              </Link>
             </button>
           </div>
         </div>

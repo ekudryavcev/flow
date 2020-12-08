@@ -1,12 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
 //import { v4 as uuid } from "uuid";
-import User from "./User"
-import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 
 import Board from "./components/Board/Board";
 import Login from "./components/Login/Login";
+
 import BinaryHeap from "./BinaryHeap";
+import User from "./User"
+import { getRandomInt } from "./utilities";
 
 import lorem_ipsum from "./lorem_ipsum";
 
@@ -19,10 +21,6 @@ window.preferences = {
 window.users = {};
 window.font_size = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue('font-size'));
 
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * Math.floor(max));
-}
 
 //const getUUID = uuid;
 
@@ -43,10 +41,10 @@ function getCardID() {
 }
 
 
-new User(1, "John Galt", "whoisjgalt@mail.com", "imgs/avatar_ba@2x.png");
-new User(2, "Amy House", "amywhoexactly@mail.com", "imgs/avatar_cj@2x.png");
-new User(3, "Michael", "mychael@mail.com", "imgs/avatar_cx@2x.png");
-new User(4, "Alice Boering", "nonotboring@mail.com", "imgs/avatar_bz@2x.png");
+new User(1, "John Galt", "whoisjgalt@mail.com", "/static/imgs/avatar_ba@2x.png");
+new User(2, "Amy House", "amywhoexactly@mail.com", "/static/imgs/avatar_cj@2x.png");
+new User(3, "Michael", "mychael@mail.com", "/static/imgs/avatar_cx@2x.png");
+new User(4, "Alice Boering", "nonotboring@mail.com", "/static/imgs/avatar_bz@2x.png");
 
 
 let tags = {
@@ -163,14 +161,17 @@ ReactDOM.render(
   <BrowserRouter>
     <Switch>
       <Route path="/board">
-        <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags} columns={columns_json} cards={cards_json} idAvailable={idAvailable} idCurrent={idCurrent} />;
+        <Board id={0} project_id={'UHC'} name={"UHC Bugs"} tags={tags} columns={columns_json} cards={cards_json} idAvailable={idAvailable} idCurrent={idCurrent} />
       </Route>
       <Route path="/login">
         <Login />
       </Route>
+      <Route exact path="/">
+        <Redirect to="/login" />
+      </Route>
     </Switch>
   </BrowserRouter>,
-  document.getElementsByTagName('body')[0]
+  document.getElementById("app-container")
 );
 
 document.getElementsByTagName("body")[0].className = "theme-" + window.preferences.theme;

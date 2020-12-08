@@ -9,14 +9,14 @@ flow_frontend/.pnp.js
 # testing
 /coverage
 
-# Environments
+# environments
 .env
 .venv
 env/
 venv/
 
 # production
-/build
+build
 
 # misc
 .DS_Store
@@ -28,4 +28,7 @@ venv/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# database
 flow_backend/flow/migrations/__pycache__
+.sqlite3

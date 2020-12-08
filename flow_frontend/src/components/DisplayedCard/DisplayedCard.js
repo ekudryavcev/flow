@@ -1,11 +1,13 @@
 import React from "react";
 import ContentEditable from "react-contenteditable";
 import sanitizeHtml from "sanitize-html";
+import { withRouter } from "react-router";
+import { Link } from "react-router-dom";
 import { ICON_DESCRIPTION, ICON_PLUS, ICON_CHECK, ICON_CALENDAR, ICON_SCHEDULLE, ICON_TAG, ICON_ADD_TAG, ICON_ASSIGNEES, ICON_ADD_USER, ICON_ARROW_RIGHT, ICON_DUPLICATE, ICON_ATTACH, ICON_SAVE_TEMPLATE, ICON_STAR, ICON_TRASH, ICON_INFO, ICON_SHARE, ICON_BIN, ICON_COPY, ICON_CROSS, ICON_LINK, ICON_FORWARD, ICON_ARCHIVE, ICON_SUBSCRIBE, ICON_EDIT } from "../../svg/icons";
 
 import Card from "../Card/Card";
 
-export default class DisplayedCard extends Card {
+class DisplayedCard extends Card {
 
   constructor(props) {
     super(props);
@@ -204,9 +206,9 @@ export default class DisplayedCard extends Card {
 
     return (
 
-      <div className="displayed-card-background" onClick={() => { window.board.displayCard(-1); }}>
-        <div className="displayed-card-container col-12 col-sm-10 col-lg-8">
-          <div className="displayed-card" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
+      <div className="displayed-card-background">
+        <div className="displayed-card-container">
+          <div className="displayed-card col-12 col-sm-10 col-lg-8" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
               <ContentEditable
                 id="displayed-card-name"
@@ -287,7 +289,9 @@ export default class DisplayedCard extends Card {
               </button>
               <div className="divider" />
               <button id="archive-card-button" onClick={() => { window.board.archiveCard(this.props.id); }}>
-                {ICON_ARCHIVE}<span>Archive</span>
+                <Link to="/board">
+                  {ICON_ARCHIVE}<span>Archive</span>
+                </Link>
               </button>
               <button id="delete-card-button" className="critical-on-hover"
                 onClick={() => { if (window.preferences.warnOnDelete) { window.board.updateState({ dialog: "delete-confirmation" }); } else { window.board.deleteCard(this.props.id); } }}>
@@ -308,7 +312,9 @@ export default class DisplayedCard extends Card {
           </div>
           <div className="displayed-card-right-buttons" onClick={e => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-right-top-buttons">
-              <button onClick={() => { window.board.displayCard(-1); }}>{ICON_CROSS}</button>
+              <Link to="/board" >
+                <button>{ICON_CROSS}</button>
+              </Link>
               <button>{ICON_INFO}</button>
               <button>{ICON_SHARE}</button>
             </div>
@@ -354,3 +360,5 @@ export default class DisplayedCard extends Card {
 
   resize = () => { };
 }
+
+export default DisplayedCard;
