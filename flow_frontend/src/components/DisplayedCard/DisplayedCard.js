@@ -80,7 +80,7 @@ class DisplayedCard extends Card {
   render() {
 
     let select_column = [];
-    window.board.state.columns.forEach(column => {
+    Object.keys(window.board.state.columns).forEach(column => {
       select_column.push(<option value={column.id}>{column.name}</option>);
     });
     select_column = <select id="displayed-card-column"
@@ -289,13 +289,15 @@ class DisplayedCard extends Card {
               </button>
               <div className="divider" />
               <button id="archive-card-button" onClick={() => { window.board.archiveCard(this.props.id); }}>
-                <Link to="/board">
+                <Link to={`/board=${window.board.id}`}>
                   {ICON_ARCHIVE}<span>Archive</span>
                 </Link>
               </button>
               <button id="delete-card-button" className="critical-on-hover"
                 onClick={() => { if (window.preferences.warnOnDelete) { window.board.updateState({ dialog: "delete-confirmation" }); } else { window.board.deleteCard(this.props.id); } }}>
-                {ICON_TRASH}<span>Delete</span>
+                <Link to={`/board=${window.board.id}`}>
+                  {ICON_TRASH}<span>Delete</span>
+                </Link>
               </button>
             </div>
             <div className="displayed-card-footer">
@@ -312,7 +314,7 @@ class DisplayedCard extends Card {
           </div>
           <div className="displayed-card-right-buttons" onClick={e => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-right-top-buttons">
-              <Link to="/board" >
+              <Link to={`/board=${window.board.id}`} >
                 <button>{ICON_CROSS}</button>
               </Link>
               <button>{ICON_INFO}</button>

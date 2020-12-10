@@ -47,7 +47,7 @@ class Board extends React.Component {
       columns[column_id].cards.push(card.id);
     cards[card.id] = card;
     this.updateState({ cards: cards, columns: columns, displayedCard: card.id });
-    window.history.pushState("Card " + card.id, "Card #" + card.id, "/board/card=" + card.id);
+    window.history.pushState("Card " + card.id, "Card #" + card.id, `/board=${window.board.id}/card=${card.id}`);
     return card.id;
   }
 
@@ -118,40 +118,37 @@ class Board extends React.Component {
     if(window.location.pathname.match(/card=\d+/)) {
       let card_id = parseInt(window.location.pathname.match(/card=\d+/)[0].replace(/[^0-9]/g, ''));
       if(card_id === this.next_id) {
-        displayedCard = <Redirect to={`/board/card=${card_id}`} />;
+        displayedCard = <Redirect to={`/board=${window.board.id}/card=${card_id}`} />;
       } else {
         let card = this.state.cards[card_id];
         if(card === undefined)
-          displayedCard = <Redirect to="/board" />;
+          displayedCard = <Redirect to={`/board=${window.board.id}`} />;
         else
           displayedCard = <DisplayedCard id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />;
       }
     }
 
-    let cards = [];
     let columns = [];
     // For each column of cards in the board's list of card IDs
-    for (let i = 0; i < this.state.columns.length; ++i) {
-      const column_data = this.state.columns[i].cards;
-      let column = []; // A list of card components for a column
-      // For each card ID in the column
-      column_data.forEach(card_id => {
-        const card = this.state.cards[card_id];
-        column.push( // Add the card's component into the list for a column
-          <Card key={card.id.toString()} id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />
+    for (const i in this.state.columns) {
+      if (this.state.columns.hasOwnProperty(i)) {
+        const column_data = this.state.columns[i].cards;
+        const column = this.state.columns[i];
+        let card_list = []; // A list of card components for a column
+        // For each card ID in the column
+        column_data.forEach(card_id => {
+          const card = this.state.cards[card_id];
+          card_list.push( // Add the card's component into the list for a column
+            <Card key={card.id.toString()} id={card.id} name={card.name} description={card.description} column={card.column} tags={card.tags} taskList={card.taskList} assignees={card.assignees} />
+          );
+        });
+        // Now generate the column components, complete with their cards as children
+        columns.push(
+          <Column key={column.id.toString()} id={column.id} name={column.name} description={column.description} locked={column.locked}>
+            {card_list}
+          </Column>
         );
-      });
-      // Add the filled column to the main list of components
-      cards.push(column);
-    }
-    // Now generate the column components, complete with their cards as children
-    for (let i = 0; i < this.state.columns.length; ++i) {
-      const column = this.state.columns[i];
-      columns.push(
-        <Column key={column.id.toString()} id={column.id} name={column.name} description={column.description} locked={column.locked}>
-          {cards[i]}
-        </Column>
-      );
+      }
     }
 
     // If a dialog is open full-screen right now, make a component for it
@@ -170,9 +167,11 @@ class Board extends React.Component {
                     <button onClick={() => { window.board.updateState({dialog: -1});}}>Cancel</button>
                     <div className="delete-buttons">
                       <button onClick={() => { window.board.updateState({dialog: -1}); window.board.archiveCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}}>
-                        <Link to="/board">Archive</Link>
+                        <Link to={`/board=${window.board.id}`}>Archive</Link>
                       </button>
-                      <button onClick={() => { window.board.updateState({dialog: -1}); window.board.deleteCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}} className="critical">Delete</button>
+                      <button onClick={() => { window.board.updateState({dialog: -1}); window.board.deleteCard(window.board.state.displayedCard); window.preferences.warnOnDelete = !document.getElementById("do-not-confirm").checked;}} className="critical">
+                        <Link to={`/board=${window.board.id}`}>Delete</Link>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -189,10 +188,10 @@ class Board extends React.Component {
           <div className="col-lg-1"></div>
         </div>
         <Switch>
-          <Route exact path="/board/card=-1">
-            <Redirect to="/board" />
+          <Route exact path="/board=:board_id/card=-1">
+            <Redirect to={`/board=${this.id}`} />
           </Route>
-          <Route path="/board/card=:id">
+          <Route path="/board=:board_id/card=:id">
             {displayedCard}
           </Route>
         </Switch>

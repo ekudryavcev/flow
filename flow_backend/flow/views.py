@@ -2,6 +2,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import GenericAPIView
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from os import path
 from .models import Card, Column, Board, User, Tag
 from .serializers import CardSerializer, ColumnSerializer, BoardSerializer, TagSerializer, UserSerializer, LoginUserSerializer
@@ -53,6 +54,6 @@ class LoginAPI(GenericAPIView):
 def login(request):
     return render(request, "index.html", context=None)
 
-
-def board(request):
+#@login_required
+def board(request, board_id=-1, card_id=-1):
     return render(request, "index.html", context=None)

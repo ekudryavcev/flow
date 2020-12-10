@@ -90,7 +90,7 @@ class BoardSerializer(serializers.ModelSerializer):
             "project_id",
             "creation_date",
             "last_edit_date",
-            "creator",
+            "owner",
             "users",
             "columns",
             "cards",

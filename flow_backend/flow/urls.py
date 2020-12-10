@@ -7,7 +7,8 @@ from django.urls import path
 router = SimpleRouter()
 
 urlpatterns = router.urls + [
-    path("board", views.board),
+    path("board=<int:board_id>", views.board),
+    path("board=<int:board_id>/card=<int:card_id>", views.board),
     path("login", views.login),
-    path("^login/$", views.LoginAPI.as_view()),
+    path("login/$", views.LoginAPI.as_view()),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

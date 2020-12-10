@@ -31,7 +31,7 @@ class Board(models.Model):
     project_id = models.CharField(max_length=5)
     creation_date = models.DateTimeField(auto_now_add=True)
     last_edit_date = models.DateTimeField(auto_now=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     users = models.ManyToManyField(User, through="BoardsToUsers", related_name="board_roles")
     #  Atributes through symmetric relations:
     #   - columns  (Column)
@@ -95,8 +95,8 @@ class Card(models.Model):
     is_archived = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     task_list =  models.TextField(blank=False, null=False) # In JSON format
-    assignees = models.ManyToManyField(User, related_name="assigned_to")
-    tags = models.ManyToManyField(Tag, related_name="cards_labeled")
+    assignees = models.ManyToManyField(User, null=True, blank=True, related_name="assigned_to")
+    tags = models.ManyToManyField(Tag, null=True, blank=True, related_name="cards_labeled")
     #  Atributes through symmetric relations: none
         
     class Meta:

@@ -966,6 +966,7 @@ ol:hover .displayed-task .remove-task {
     display: flex;
     flex-direction: row;
     justify-content: left;
+    flex-wrap: wrap;
     margin-top: 0.625rem;
 }
 
@@ -1098,6 +1099,10 @@ ol:hover .displayed-task .remove-task {
     height: 1.5rem;
     -webkit-transition: color 0.125s;
     transition: color 0.125s;
+}
+
+#delete-card-button svg {
+    height: 1.5rem;
 }
 
 .displayed-card-options>button:hover {

@@ -114,7 +114,7 @@ class Card extends React.Component {
 
     return (
       <Draggable type="card" data={this.id}>
-        <Link to={"/board/card=" + this.id} className="card" onClick={() => { window.board.displayCard(this.id); console.log(this.id) }}>
+        <Link to={`/board=${window.board.id}/card=${this.id}`} className="card" onClick={() => { window.board.displayCard(this.id); console.log(this.id) }}>
           <p>{this.name}</p>
           {task_list_components}
           <div>

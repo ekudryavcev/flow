@@ -43,7 +43,7 @@ export default class Column extends React.Component {
               </ol>
             </Droppable>
             <button className="add-card-button" onClick={() => { window.board.addCard(this.id, { name: "", description: "", column: this.id, tags: [], assignees: [] }) }}>
-              <Link to={`/board/card=${window.board.next_id}`}>
+              <Link to={`/board=${window.board.id}/card=${window.board.next_id}`}>
                 {ICON_PLUS}
               </Link>
             </button>
