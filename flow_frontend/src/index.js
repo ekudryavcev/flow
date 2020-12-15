@@ -12,7 +12,6 @@ import { getRandomInt } from "./utilities";
 
 import lorem_ipsum from "./lorem_ipsum";
 
-const DEV = true;
 
 window.board = {};
 window.preferences = {
@@ -27,7 +26,7 @@ window.font_size = parseFloat(window.getComputedStyle(document.body, null).getPr
 
 
 var idAvailable = new BinaryHeap(),
-    idCurrent = 1;
+    idCurrent = -1;
 
 function getCardID() {
   let id;
@@ -56,10 +55,11 @@ let id,
     columns_json = {},
     cards_json = {};
 
-if(DEV) {
+if(window.DEV) {
   board_id = 0;
   project_id = "UHC";
   board_name = "UHC Bugs";
+  idCurrent = 1;
   tags = {
     0: { "name": "performance", "color": 0 },
     1: { "name": "feature",     "color": 1 },
@@ -168,7 +168,8 @@ if(DEV) {
   console.log(cards_json);
   console.log(columns_json);
 } else {
-  if(window.location.pathname.match(/board=\d+/).length == 0)
+  if(window.location.pathname.match(/board=\d+/) === null || 
+     window.location.pathname.match(/board=\d+/).length == 0)
     board_id = -1;
   else
     board_id = parseInt(window.location.pathname.match(/board=\d+/)[0].replace(/[^0-9]/g, ''));
@@ -238,7 +239,7 @@ function render() {
   );
 }
 
-setTimeout(render, DEV? 0 : 1000);
+setTimeout(render, window.DEV? 0 : 1000);
 
 
 document.getElementsByTagName("body")[0].className = "theme-" + window.preferences.theme;

@@ -1,4 +1,4 @@
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import GenericAPIView
 from django.shortcuts import render
@@ -21,9 +21,11 @@ class ColumnViewSet(ModelViewSet):
 
 
 class BoardViewSet(ModelViewSet):
-    queryset = Board.objects.all()
+    permission_classes = [
+        IsAuthenticated
+    ]
     serializer_class = BoardSerializer
-    permission_classes = [AllowAny]
+    queryset = Board.objects.all()
 
 
 class UserViewSet(ModelViewSet):

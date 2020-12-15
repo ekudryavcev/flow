@@ -1,7 +1,6 @@
 import React from "react";
 import ContentEditable from "react-contenteditable";
 import sanitizeHtml from "sanitize-html";
-import { withRouter } from "react-router";
 import { Link } from "react-router-dom";
 import { ICON_DESCRIPTION, ICON_PLUS, ICON_CHECK, ICON_CALENDAR, ICON_SCHEDULLE, ICON_TAG, ICON_ADD_TAG, ICON_ASSIGNEES, ICON_ADD_USER, ICON_ARROW_RIGHT, ICON_DUPLICATE, ICON_ATTACH, ICON_SAVE_TEMPLATE, ICON_STAR, ICON_TRASH, ICON_INFO, ICON_SHARE, ICON_BIN, ICON_COPY, ICON_CROSS, ICON_LINK, ICON_FORWARD, ICON_ARCHIVE, ICON_SUBSCRIBE, ICON_EDIT } from "../../svg/icons";
 
@@ -80,9 +79,12 @@ class DisplayedCard extends Card {
   render() {
 
     let select_column = [];
-    Object.keys(window.board.state.columns).forEach(column => {
-      select_column.push(<option value={column.id}>{column.name}</option>);
-    });
+    for (const column_id in window.board.state.columns) {
+      if (window.board.state.columns.hasOwnProperty(column_id)) {
+        const column = window.board.state.columns[column_id];
+        select_column.push(<option value={column.id}>{column.name}</option>);
+      }
+    }
     select_column = <select id="displayed-card-column"
       value={this.state.column}
       onChange={() => { this.setColumn(parseInt(document.getElementById("displayed-card-column").value)); }}>
@@ -208,7 +210,7 @@ class DisplayedCard extends Card {
 
       <div className="displayed-card-background">
         <div className="displayed-card-container">
-          <div className="displayed-card col-12 col-sm-10 col-lg-8" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
+          <div className="displayed-card col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6" onClick={(e) => { let evt = e ? e : window.event; if (evt.stopPropagation) { evt.stopPropagation(); } else { evt.cancelBubble = true; } return false; /* Ignore click - to prevent clicks from registering on lower layers */ }}>
             <div className="displayed-card-header">
               <ContentEditable
                 id="displayed-card-name"

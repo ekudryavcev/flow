@@ -29,6 +29,12 @@ class Board extends React.Component {
       displayedCard: props.displayedCard,
       dialog: props.dialog,
     };
+    if (props.idCurrent === undefined || props.idCurrent === -1) {
+      this.state.idCurrent = Math.max(Object.keys(this.state.cards)) + 1;
+      for (let i = 1; i < this.state.idCurrent; i++)
+        if (!(i in this.state.cards))
+          this.state.idAvailable.push(i);
+    }
     window.board = this;
   }
 

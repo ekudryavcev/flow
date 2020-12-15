@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Draggable } from "react-drag-and-drop";
 import { Link } from "react-router-dom";
-import {withRouter} from "react-router";
 
 import {ICON_DESCRIPTION, ICON_CHECK} from "../../svg/icons";
 
@@ -77,8 +76,14 @@ class Card extends React.Component {
 
   render() {
 
-    this.name = window.board.state.cards[this.props.id].name;
-    this.state.description = window.board.state.cards[this.props.id].description;
+    if (this.name !== window.board.state.cards[this.props.id].name
+     || this.state.description !== window.board.state.cards[this.props.id].description) {
+      this.name = window.board.state.cards[this.props.id].name;
+      this.updateState({
+        "description" : window.board.state.cards[this.props.id].description, 
+        "name" : window.board.state.cards[this.props.id].name
+      });
+    }
 
     let large_tag_count = 0;//this.renderTags();
     let rendered_tags = [];

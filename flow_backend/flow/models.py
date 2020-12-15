@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth import get_user_model
 
 
 class User(DjangoUser):
@@ -31,8 +32,8 @@ class Board(models.Model):
     project_id = models.CharField(max_length=5)
     creation_date = models.DateTimeField(auto_now_add=True)
     last_edit_date = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    users = models.ManyToManyField(User, through="BoardsToUsers", related_name="board_roles")
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    users = models.ManyToManyField(get_user_model(), through="BoardsToUsers", related_name="board_roles")
     #  Atributes through symmetric relations:
     #   - columns  (Column)
     #   - cards  (Card)
@@ -53,7 +54,7 @@ class Column(models.Model):
     description = models.TextField(blank=True, null=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     last_edit_date = models.DateTimeField(auto_now=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     #  Atributes through symmetric relations:
     #   - cards  (Card)
         
@@ -67,11 +68,11 @@ class Column(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=50)
     color = models.IntegerField()
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name="tags")
     creation_date = models.DateTimeField(auto_now_add=True)
     last_edit_date = models.DateTimeField(auto_now=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     #  Atributes through symmetric relations:
     #   - cards_labeled  (Card)
         
@@ -90,13 +91,13 @@ class Card(models.Model):
     column = models.ForeignKey(Column, on_delete=models.CASCADE, related_name="cards")
     description = models.TextField(blank=True, null=True)
     creation_date = models.DateTimeField(auto_now_add=True)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="cards_created")
+    creator = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="cards_created")
     last_edit_date = models.DateTimeField(auto_now=True)
     is_archived = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     task_list =  models.TextField(blank=False, null=False) # In JSON format
-    assignees = models.ManyToManyField(User, null=True, blank=True, related_name="assigned_to")
-    tags = models.ManyToManyField(Tag, null=True, blank=True, related_name="cards_labeled")
+    assignees = models.ManyToManyField(get_user_model(), blank=True, related_name="assigned_to")
+    tags = models.ManyToManyField(Tag, blank=True, related_name="cards_labeled")
     #  Atributes through symmetric relations: none
         
     class Meta:
@@ -116,7 +117,7 @@ class BoardsToUsers(models.Model):
         (CONTRIBUTOR, 'Contributor'),
     )
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     role = models.IntegerField(choices=BOARD_ROLES)
 
     class Meta:
