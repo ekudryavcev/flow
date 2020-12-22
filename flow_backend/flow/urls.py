@@ -10,5 +10,5 @@ urlpatterns = router.urls + [
     path("board=<int:board_id>", views.board),
     path("board=<int:board_id>/card=<int:card_id>", views.board),
     path("login", views.login),
-    path("login/", views.LoginAPI.as_view()),
+    path("login/", views.login),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

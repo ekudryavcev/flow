@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from rest_framework_jwt.settings import api_settings
 from . import models
 
 
@@ -20,29 +21,31 @@ class UserSerializer(serializers.ModelSerializer):
         model = models.User
 
 
-class LoginUserSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+class UserSerializerWithToken(serializers.ModelSerializer):
 
-    def validate(self, data):
-        user = authenticate(**data)
-        if user:
-            return user
-        raise serializers.ValidationError("Unable to log in with provided credentials.")
+    token = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True)
 
+    def get_token(self, obj):
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
-class CreateUserSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = models.User
-        fields = ("id", "username", "password", "email", "is_superuser")
-        extra_kwargs = {"password": {"write_only": True}}
+        payload = jwt_payload_handler(obj)
+        token = jwt_encode_handler(payload)
+        return token
 
     def create(self, validated_data):
-        user = models.User.objects.create_user(validated_data["username"],
-                                               None,
-                                               validated_data["password"])
-        return user
+        password = validated_data.pop("password", None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = models.User
+        fields = ("token", "username", "password")
+
 
 
 class CardSerializer(serializers.ModelSerializer):

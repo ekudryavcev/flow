@@ -20,14 +20,10 @@
     <title>Flow</title>
     <!--
     {% load static %}
-    <script src="{% static 'rest_framework/js/coreapi-0.1.1.js' %}"></script>
-    <script src="{% url 'api-docs:schema-js' %}"></script>
     <base href="{% static '' %}">
     -->
     <script>
         window.DEV = true;
-        if(!window.DEV)
-          window.current_client = new coreapi.Client();
     </script>
     <link rel="icon" href="%PUBLIC_URL%/static/favicon.ico"/>
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/static/logo192.png"/>

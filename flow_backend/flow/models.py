@@ -96,7 +96,7 @@ class Card(models.Model):
     is_archived = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
     task_list =  models.TextField(blank=False, null=False) # In JSON format
-    assignees = models.ManyToManyField(get_user_model(), blank=True, related_name="assigned_to")
+    assignees = models.ManyToManyField(get_user_model(), blank=True, null=True, related_name="assigned_to")
     tags = models.ManyToManyField(Tag, blank=True, related_name="cards_labeled")
     #  Atributes through symmetric relations: none
         

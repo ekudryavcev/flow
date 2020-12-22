@@ -15,7 +15,7 @@ import lorem_ipsum from "./lorem_ipsum";
 
 window.board = {};
 window.preferences = {
-  theme: "dark",
+  theme: "light",
   warnOnDelete: true
 };
 window.users = {};
@@ -176,65 +176,177 @@ if(window.DEV) {
 
   let column_ids,
       card_ids;
-  window.current_client.action(window.schema, ["api", "boards", "read"], {id: board_id}).then((result) => {
-    project_id = result.project_id;
-    board_name = result.name;
-    column_ids = result.columns;
-    card_ids = result.cards;
-    console.log(result);
+  
+  
+  fetch(`http://localhost:8000/api/boards/${board_id}/`, {
+    headers: {
+      Authorization: `JWT ${localStorage.getItem('token')}`
+    }
+  }).then(res => res.json()).then(result => {
+      project_id = result.project_id;
+      board_name = result.name;
+      column_ids = result.columns;
+      card_ids = result.cards;
+      console.log(result)
 
-    column_ids.forEach(column_id => {
-      window.current_client.action(window.schema, ["api", "columns", "read"], {id: column_id}).then((result) => {
-        let new_column = {
-          id: column_id,
-          name: result.name,
-          description: result.description,
-          locked: result.is_private,
-          cards: result.cards
-        };
-        columns_json[column_id] = new_column;
-        console.log(result);
-      }).catch((error) => { console.log(error); });
-    });
-
-    card_ids.forEach(card_id => {
-      window.current_client.action(window.schema, ["api", "cards", "read"], {id: card_id}).then((result) => {
-        let new_card = {
-          id: result.local_id,
-          name: result.name,
-          description: result.description,
-          column: result.column,
-          tags: result.tags,
-          taskList: result.taskList,
-          assignees: result.assignees,
-          is_archived: result.is_archived,
-          creator: result.creator,
-          creation_date: result.creation_date
-        };
-        cards_json[result.local_id] = new_card;
-        console.log(result);
-      }).catch((error) => { console.log(error); });
-    });
-
-  }).catch((error) => { console.log(error); });
+      column_ids.forEach(column_id => {
+        fetch(`http://localhost:8000/api/columns/${column_id}/`, {
+          headers: {
+            Authorization: `JWT ${localStorage.getItem('token')}`
+          }
+        }).then(res => res.json()).then((result) => {
+          let new_column = {
+            id: column_id,
+            name: result.name,
+            description: result.description,
+            locked: result.is_private,
+            cards: result.cards
+          };
+          columns_json[column_id] = new_column;
+          console.log(result);
+        }).catch((error) => { console.log(error); });
+      });
+  
+      card_ids.forEach(card_id => {
+        fetch(`http://localhost:8000/api/cards/${card_id}/`, {
+          headers: {
+            Authorization: `JWT ${localStorage.getItem('token')}`
+          }
+        }).then(res => res.json()).then((result) => {
+          let new_card = {
+            id: result.local_id,
+            name: result.name,
+            description: result.description,
+            column: result.column,
+            tags: result.tags,
+            taskList: result.taskList,
+            assignees: result.assignees,
+            is_archived: result.is_archived,
+            creator: result.creator,
+            creation_date: result.creation_date
+          };
+          cards_json[result.local_id] = new_card;
+          console.log(result);
+        }).catch((error) => { console.log(error); });
+      });
+  });
 
 }
 
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      logged_in: (localStorage.getItem('token') && localStorage.getItem('token') != "undefined") ? true : false,
+      username: ''
+    };
+  }
+
+  componentDidMount() {
+    if (this.state.logged_in) {
+      fetch('http://localhost:8000/api/current_user/', {
+        headers: {
+          Authorization: `JWT ${localStorage.getItem('token')}`
+        }
+      })
+        .then(res => res.json())
+        .then(json => {
+          this.setState({ username: json.username });
+        })
+        .catch(e => {
+          console.log(e);
+        });
+    }
+  }
+
+  handle_login = (e, data) => {
+    e.preventDefault();
+    console.log("Logging in");
+    console.log(data);
+    fetch('http://localhost:8000/api/token-auth/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+      .then(res => res.json())
+      .then(json => {
+        console.log(json);
+        localStorage.setItem('token', json.token);
+        this.setState({
+          logged_in: true
+        });
+      })
+      .then(() => {{
+        fetch('http://localhost:8000/api/current_user/', {
+          headers: {
+            Authorization: `JWT ${localStorage.getItem('token')}`
+          }
+        })
+          .then(res => res.json())
+          .then(json => {
+            this.setState({ username: json.username });
+          });
+        }
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  };
+
+  handle_signup = (e, data) => {
+    e.preventDefault();
+    fetch('http://localhost:8000/api/users/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+      .then(res => res.json())
+      .then(json => {
+        localStorage.setItem('token', json.token);
+        this.setState({
+          logged_in: true,
+          username: json.username
+        });
+      });
+  };
+
+  handle_logout = () => {
+    localStorage.removeItem('token');
+    this.setState({ logged_in: false, username: '' });
+  };
+
+  render() {
+    return (
+      <BrowserRouter>
+        <Switch>
+          <Route path="/board=:id">
+            {this.state.logged_in || window.DEV
+              ? this.props.children
+              : <Redirect to="/login" />}
+          </Route>
+          <Route path="/login">
+            <Login handle_login={this.handle_login} />
+          </Route>
+          <Route exact path="/">
+            <Redirect to="/login" />
+          </Route>
+        </Switch>
+      </BrowserRouter>
+    );
+  }
+}
+
+
 function render() {
   ReactDOM.render(
-    <BrowserRouter>
-      <Switch>
-        <Route path="/board=:id">
-          <Board id={board_id} project_id={project_id} name={board_name} tags={tags} columns={columns_json} cards={cards_json} idAvailable={idAvailable} idCurrent={idCurrent} />
-        </Route>
-        <Route path="/login">
-          <Login />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/login" />
-        </Route>
-      </Switch>
-    </BrowserRouter>,
+    <App>
+      <Board id={board_id} project_id={project_id} name={board_name} tags={tags} columns={columns_json} cards={cards_json} idAvailable={idAvailable} idCurrent={idCurrent} />
+    </App>,
     document.getElementById("app-container")
   );
 }
