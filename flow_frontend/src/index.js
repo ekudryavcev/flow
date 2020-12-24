@@ -1,10 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 //import { v4 as uuid } from "uuid";
-import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 
 import Board from "./components/Board/Board";
-import Login from "./components/Login/Login";
+import App from "./components/App/App";
 
 import BinaryHeap from "./BinaryHeap";
 import User from "./User"
@@ -15,7 +14,7 @@ import lorem_ipsum from "./lorem_ipsum";
 
 window.board = {};
 window.preferences = {
-  theme: "light",
+  theme: "dark",
   warnOnDelete: true
 };
 window.users = {};
@@ -169,7 +168,7 @@ if(window.DEV) {
   console.log(columns_json);
 } else {
   if(window.location.pathname.match(/board=\d+/) === null || 
-     window.location.pathname.match(/board=\d+/).length == 0)
+     window.location.pathname.match(/board=\d+/).length === 0)
     board_id = -1;
   else
     board_id = parseInt(window.location.pathname.match(/board=\d+/)[0].replace(/[^0-9]/g, ''));
@@ -185,8 +184,8 @@ if(window.DEV) {
   }).then(res => res.json()).then(result => {
       project_id = result.project_id;
       board_name = result.name;
-      column_ids = result.columns;
-      card_ids = result.cards;
+      column_ids = result.columns ? result.columns : [];
+      card_ids = result.cards ? result.cards : [];
       console.log(result)
 
       column_ids.forEach(column_id => {
@@ -231,114 +230,6 @@ if(window.DEV) {
       });
   });
 
-}
-
-
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      logged_in: (localStorage.getItem('token') && localStorage.getItem('token') != "undefined") ? true : false,
-      username: ''
-    };
-  }
-
-  componentDidMount() {
-    if (this.state.logged_in) {
-      fetch('http://localhost:8000/api/current_user/', {
-        headers: {
-          Authorization: `JWT ${localStorage.getItem('token')}`
-        }
-      })
-        .then(res => res.json())
-        .then(json => {
-          this.setState({ username: json.username });
-        })
-        .catch(e => {
-          console.log(e);
-        });
-    }
-  }
-
-  handle_login = (e, data) => {
-    e.preventDefault();
-    console.log("Logging in");
-    console.log(data);
-    fetch('http://localhost:8000/api/token-auth/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(json => {
-        console.log(json);
-        localStorage.setItem('token', json.token);
-        this.setState({
-          logged_in: true
-        });
-      })
-      .then(() => {{
-        fetch('http://localhost:8000/api/current_user/', {
-          headers: {
-            Authorization: `JWT ${localStorage.getItem('token')}`
-          }
-        })
-          .then(res => res.json())
-          .then(json => {
-            this.setState({ username: json.username });
-          });
-        }
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  };
-
-  handle_signup = (e, data) => {
-    e.preventDefault();
-    fetch('http://localhost:8000/api/users/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(json => {
-        localStorage.setItem('token', json.token);
-        this.setState({
-          logged_in: true,
-          username: json.username
-        });
-      });
-  };
-
-  handle_logout = () => {
-    localStorage.removeItem('token');
-    this.setState({ logged_in: false, username: '' });
-  };
-
-  render() {
-    return (
-      <BrowserRouter>
-        <Switch>
-          <Route path="/board=:id">
-            {this.state.logged_in || window.DEV
-              ? this.props.children
-              : <Redirect to="/login" />}
-          </Route>
-          <Route path="/login">
-            <Login handle_login={this.handle_login} />
-          </Route>
-          <Route exact path="/">
-            <Redirect to="/login" />
-          </Route>
-        </Switch>
-      </BrowserRouter>
-    );
-  }
 }
 
 

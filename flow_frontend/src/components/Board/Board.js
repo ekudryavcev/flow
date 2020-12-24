@@ -1,6 +1,5 @@
 import React from "react";
 import { Redirect, Route, Switch, Link } from "react-router-dom";
-import { withRouter } from "react-router";
 import BinaryHeap from "../../BinaryHeap";
 
 import Card from "../Card/Card";
@@ -61,6 +60,7 @@ class Board extends React.Component {
     let id;
     if (this.state.idAvailable.isEmpty()) {
       id = this.state.idCurrent;
+      // eslint-disable-next-line
       this.state.idCurrent++;
       return (id);
     }
@@ -71,6 +71,7 @@ class Board extends React.Component {
   
   deleteCardID(id) {
     if (id === this.state.idCurrent - 1) {
+      // eslint-disable-next-line
       this.state.idCurrent = id;
     }
     else {

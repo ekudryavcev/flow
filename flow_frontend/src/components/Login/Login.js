@@ -1,6 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { ICON_CROSS } from "../../svg/icons";
-import CSRFToken from "../CSRFToken/CSRFToken"
 import PropTypes from "prop-types";
 
 class Login extends React.Component {
@@ -68,7 +68,7 @@ class Login extends React.Component {
                     </div>
                 </form>
                 <div id="no-account-footer">
-                    <span>Don't have an account?</span><a>Sign up</a>
+                    <span>Don't have an account?</span><Link to={"/signup"}>Sign up</Link>
                 </div>
             </div>
         );
